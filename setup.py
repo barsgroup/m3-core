@@ -29,7 +29,7 @@ setup(
     package_dir={'': 'src'},
     packages=find_packages('src'),
     description=_read('DESCRIPTION.md'),
-    install_requires=_get_requirements('REQUIREMENTS'),
+    install_requires=_get_requirements('requirements/base.txt'),
     long_description=_read('README.md'),
     include_package_data=True,
     classifiers=(

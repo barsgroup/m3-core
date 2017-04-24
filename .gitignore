@@ -6,6 +6,7 @@
 .pydevproject
 .settings
 .coverage
+htmlcov
 
 *.log
 
@@ -15,6 +16,7 @@
 # setuptools specific
 .eggs
 dist
+build
 *.egg-info
 .tox
 
