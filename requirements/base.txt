@@ -1,0 +1,4 @@
+--extra-index-url https://pypi.bars-open.ru/simple
+
+m3-builder>=1.0.1
+m3-django-compat>=1.2.3

@@ -1,0 +1,4 @@
+-r base.txt
+
+# testing requirements
+mock==2.0.0

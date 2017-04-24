@@ -1,3 +1,5 @@
 graft src
-include DESCRIPTION.md README.md REQUIREMENTS
+prune src/test_project
+recursive-exclude src/ *tests.py *manage.py
+include DESCRIPTION.md README.md requirements/base.txt
 include version.conf
