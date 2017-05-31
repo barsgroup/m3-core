@@ -69,6 +69,16 @@ class M3JSONEncoder(json.JSONEncoder):
         self.dict_list = kwargs.pop('dict_list', None)
         super(M3JSONEncoder, self).__init__(*args, **kwargs)
 
+    def iterencode(self, o, _one_shot=False):
+        chunks = super(M3JSONEncoder, self).iterencode(o, _one_shot)
+        replace_map = (
+            ('&', '&amp;'),
+            ('<', '&lt;'),
+            ('>', '&gt;'),
+        )
+        for chunk in chunks:
+            yield reduce(lambda s, r: s.replace(*r), replace_map, chunk)
+
     def default(self, obj):
         # обработаем простейшие объекты,
         # которые не обрабатываются стандартным способом
