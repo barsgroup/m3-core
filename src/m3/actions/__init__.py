@@ -14,6 +14,7 @@ import warnings
 
 from django import http
 from django.conf import settings
+import django
 
 
 from results import (
@@ -1605,6 +1606,30 @@ class ControllerCache(object):
         assert isinstance(controller, ActionController)
         cls._controllers.add(controller)
 
+    @staticmethod
+    def _get_installed_apps():
+        u"""Возвращает имена пакетов с django-приложениями.
+
+        .. note::
+
+           Невозможность обхода в цикле списка ``INSTALLED_APPS`` обусловлена
+           тем, что начиная с Django 1.7 приложения проекта могут быть указаны
+           как путь до класса с конфигурацией приложения, например как
+           ``project.app1.apps.AppConfig``.
+        """
+        if django.VERSION < (1, 7):
+            result = settings.INSTALLED_APPS
+
+        else:
+            from django.apps import apps
+
+            result = (
+                app_config.name
+                for app_config in apps.get_app_configs()
+            )
+
+        return result
+
     @classmethod
     def populate(cls):
         """
@@ -1626,7 +1651,7 @@ class ControllerCache(object):
 
             cls.overrides = {}
             procs = []
-            for app_name in settings.INSTALLED_APPS:
+            for app_name in cls._get_installed_apps():
                 try:
                     module = importlib.import_module('.app_meta', app_name)
                 except ImportError, err:
