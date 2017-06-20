@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 """
 Основные объекты библиотеки: механизмы проверки прав, экшены, паки, контроллеры, кэш контроллеров
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -14,6 +14,7 @@ import warnings
 
 from django import http
 from django.conf import settings
+from m3_django_compat import get_installed_apps
 import django
 
 
@@ -37,8 +38,6 @@ from exceptions import (
     ReinitException,
     ActionUrlIsNotDefined
 )
-
-import utils
 
 from context import (
     ActionContext,
@@ -380,7 +379,7 @@ def _permission_checker_fabric():
         if path is None:
             # если backend не задан в настройках, то исходим из того,
             # подключены ли пользователи Django
-            if 'django.contrib.auth' in settings.INSTALLED_APPS:
+            if 'django.contrib.auth' in get_installed_apps():
                 result = AuthUserPermissionChecker
             else:
                 result = BypassPermissionChecker
@@ -1606,30 +1605,6 @@ class ControllerCache(object):
         assert isinstance(controller, ActionController)
         cls._controllers.add(controller)
 
-    @staticmethod
-    def _get_installed_apps():
-        u"""Возвращает имена пакетов с django-приложениями.
-
-        .. note::
-
-           Невозможность обхода в цикле списка ``INSTALLED_APPS`` обусловлена
-           тем, что начиная с Django 1.7 приложения проекта могут быть указаны
-           как путь до класса с конфигурацией приложения, например как
-           ``project.app1.apps.AppConfig``.
-        """
-        if django.VERSION < (1, 7):
-            result = settings.INSTALLED_APPS
-
-        else:
-            from django.apps import apps
-
-            result = (
-                app_config.name
-                for app_config in apps.get_app_configs()
-            )
-
-        return result
-
     @classmethod
     def populate(cls):
         """
@@ -1651,7 +1626,7 @@ class ControllerCache(object):
 
             cls.overrides = {}
             procs = []
-            for app_name in cls._get_installed_apps():
+            for app_name in get_installed_apps():
                 try:
                     module = importlib.import_module('.app_meta', app_name)
                 except ImportError, err:

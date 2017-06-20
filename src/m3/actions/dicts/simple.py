@@ -1,7 +1,4 @@
 # coding:utf-8
-from django.db import transaction
-from django.conf import settings
-
 from m3 import RelatedError
 from m3.db import BaseObjectModel, safe_delete
 
@@ -16,6 +13,7 @@ from m3_ext.ui.windows.complex import ExtDictionaryWindow
 from m3_ext.ui.misc.store import ExtJsonStore
 from m3_ext.ui.results import ExtUIScriptResult
 from m3_django_compat import atomic
+from m3_django_compat import get_installed_apps
 
 from m3_legacy import logger
 
@@ -308,7 +306,7 @@ class DictSaveAction(Action):
             # узкое место. после того, как мы переделаем работу экшенов,
             # имя параметра с идентификатором запси может уже называться не
             # id
-            if 'm3_audit' in settings.INSTALLED_APPS:
+            if 'm3_audit' in get_installed_apps():
                 AuditManager().write(
                     'dict-changes',
                     user=request.user,
@@ -331,7 +329,7 @@ class ListDeleteRowAction(Action):
         result = self.parent.delete_row(objs)
         if (isinstance(result, OperationResult) and
                 result.success is True and
-                'm3_audit' in settings.INSTALLED_APPS):
+                'm3_audit' in get_installed_apps()):
             for obj in objs:
                 AuditManager().write(
                     'dict-changes',

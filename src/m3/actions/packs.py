@@ -2,7 +2,6 @@
 u"""Паки и экшены для работы со справочниками."""
 from logging import getLogger
 
-from django.conf import settings
 from m3.actions import (
     ActionPack, Action, PreJsonResult, OperationResult, ACD
 )
@@ -16,6 +15,7 @@ from m3.actions.interfaces import ISelectablePack
 from m3.actions.results import ActionResult
 from m3.db import BaseObjectModel, safe_delete
 from m3 import RelatedError
+from m3_django_compat import get_installed_apps
 from m3_django_compat import get_request_params
 
 
@@ -328,7 +328,7 @@ class DictSaveAction(Action):
             # узкое место. после того, как мы переделаем работу экшенов,
             # имя параметра с идентификатором запси может уже называться не
             # id
-            if 'm3_audit' in settings.INSTALLED_APPS:
+            if 'm3_audit' in get_installed_apps():
                 AuditManager().write(
                     'dict-changes',
                     user=request.user,
@@ -355,7 +355,7 @@ class ListDeleteRowAction(Action):
         result = self.parent.delete_row(objs)
         if (isinstance(result, OperationResult) and
                 result.success is True and
-                'm3_audit' in settings.INSTALLED_APPS):
+                'm3_audit' in get_installed_apps()):
             for obj in objs:
                 AuditManager().write(
                     'dict-changes',
