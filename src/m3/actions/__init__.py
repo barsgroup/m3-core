@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 """
 Основные объекты библиотеки: механизмы проверки прав, экшены, паки, контроллеры, кэш контроллеров
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -14,6 +14,8 @@ import warnings
 
 from django import http
 from django.conf import settings
+from m3_django_compat import get_installed_apps
+import django
 
 
 from results import (
@@ -36,8 +38,6 @@ from exceptions import (
     ReinitException,
     ActionUrlIsNotDefined
 )
-
-import utils
 
 from context import (
     ActionContext,
@@ -379,7 +379,7 @@ def _permission_checker_fabric():
         if path is None:
             # если backend не задан в настройках, то исходим из того,
             # подключены ли пользователи Django
-            if 'django.contrib.auth' in settings.INSTALLED_APPS:
+            if 'django.contrib.auth' in get_installed_apps():
                 result = AuthUserPermissionChecker
             else:
                 result = BypassPermissionChecker
@@ -1626,7 +1626,7 @@ class ControllerCache(object):
 
             cls.overrides = {}
             procs = []
-            for app_name in settings.INSTALLED_APPS:
+            for app_name in get_installed_apps():
                 try:
                     module = importlib.import_module('.app_meta', app_name)
                 except ImportError, err:

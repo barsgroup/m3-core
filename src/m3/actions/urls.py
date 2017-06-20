@@ -5,10 +5,10 @@ import collections
 import inspect
 import warnings
 
-from django.conf import settings
-
 from m3 import caching
 from m3.actions import ControllerCache, Action
+
+from m3_django_compat import get_installed_apps
 
 
 def _get_instance(obj):
@@ -35,7 +35,7 @@ def get_app_urlpatterns():
     '''
     url_patterns = []
 
-    for app_name in settings.INSTALLED_APPS:
+    for app_name in get_installed_apps():
         try:
             module = import_module('.app_meta', app_name)
         except ImportError, err:

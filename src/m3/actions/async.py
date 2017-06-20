@@ -6,10 +6,11 @@ from threading import Thread
 import json
 
 from django import http
-from django.conf import settings
 
 from m3.actions import Action, ACD
 from m3.actions.results import ActionResult
+
+from m3_django_compat import get_installed_apps
 
 
 logger = getLogger('django')
@@ -22,7 +23,7 @@ logger = getLogger('django')
 # TODO: переделать по правильному - платформа не должна импортировать
 # модули контрибов
 
-if not 'm3_mutex' in settings.INSTALLED_APPS:
+if not 'm3_mutex' in get_installed_apps():
     # При сборке документации внешняя Django ничего не знает про m3_mutex
     logger.warning(
         u'For working async operations "m3_mutex" '

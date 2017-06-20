@@ -7,6 +7,17 @@
 - Добавлена конфигурация для tox и интеграция tox с travis CI и coveralls
 - Обновлен README.md
 
+**2.2.12**
+- Метод ``ControllerCache._get_installed_apps()`` перенесен в m3-django-compat.
+
+**2.2.11**
+- Добавлена поддержка классов конфигурации django-приложений в параметре
+  ``INSTALLED_APPS``.
+
+**2.2.10**
+- Добавлена поддержка ``django.utils.safestring.mark_safe`` при экранировании
+  символов HTML-разметки в ``m3.M3JSONEncoder``
+
 **2.2.9**
 - Добавлено экранирование символов HTML-разметки в ``m3.M3JSONEncoder``
 

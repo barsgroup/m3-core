@@ -4,6 +4,8 @@ import copy
 import datetime
 import decimal
 import json
+from json.encoder import encode_basestring_ascii, encode_basestring
+
 import sys
 
 from django.conf import settings
@@ -17,6 +19,47 @@ from m3_django_compat import ModelOptions
 from .actions import ApplicationLogicException
 from .actions import OperationResult
 from .actions.urls import get_app_urlpatterns
+
+
+def escape_html(s):
+    u"""Экранирует символы HTML разметки.
+
+    :param  basestring s: строка для экранирования
+
+    :rtype: basestring
+    """
+    replace_map = (
+        ('&', '&amp;'),
+        ('<', '&lt;'),
+        ('>', '&gt;'),
+    )
+    return reduce(lambda s, r: s.replace(*r), replace_map, s)
+
+
+def _encode_basestring(s):
+    """Возвращает представление Python строк для JSON.
+
+    Расширяет функцию :func:`json.encoder.encode_basestring` поддержкой
+    строк, помеченных с помощью :func:`~django.utils.safestring.mark_safe`.
+    """
+    for_escape = not hasattr(s, '__html__')
+    result = encode_basestring(s)
+    if for_escape:
+        result = escape_html(result)
+    return result
+
+
+def _encode_basestring_ascii(s):
+    """Возвращает только ASCII представление Python строк для JSON .
+
+    Расширяет функцию :func:`json.encoder.encode_basestring_ascii` поддержкой
+    строк, помеченных с помощью :func:`~django.utils.safestring.mark_safe`.
+    """
+    for_escape = not hasattr(s, '__html__')
+    result = encode_basestring_ascii(s)
+    if for_escape:
+        result = escape_html(result)
+    return result
 
 
 def date2str(date, template=None):
@@ -64,20 +107,38 @@ class AutoLogout(object):
             request.session[self.session_key] = datetime.datetime.now()
 
 
+class _EncodeFunctionsPatcher(object):
+    u"""Менеджер контекста для подмены кодировщиков в ``M3JSONEncoder``
+
+    Поскольку функций кодировщиков нет в самом инстансе класса
+    ``M3JSONEncoder`` чтобы не переписывать родительский метод с заменой 2
+    переменных заменяем их с помощью менеджера контекста через глобальные
+    переменные метода iterencode на содержащие возможность экранирования HTML
+    функции, после использования возвращаем обратно.
+    """
+
+    def __init__(self, encoder):
+        self.encoder = encoder
+        self.func_globals = self.encoder.iterencode.im_func.func_globals
+
+    def __enter__(self):
+        self.func_globals['encode_basestring'] = _encode_basestring
+        self.func_globals['encode_basestring_ascii'] = _encode_basestring_ascii
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.func_globals['encode_basestring'] = encode_basestring
+        self.func_globals['encode_basestring_ascii'] = encode_basestring_ascii
+
+
 class M3JSONEncoder(json.JSONEncoder):
     def __init__(self, *args, **kwargs):
         self.dict_list = kwargs.pop('dict_list', None)
         super(M3JSONEncoder, self).__init__(*args, **kwargs)
 
-    def iterencode(self, o, _one_shot=False):
-        chunks = super(M3JSONEncoder, self).iterencode(o, _one_shot)
-        replace_map = (
-            ('&', '&amp;'),
-            ('<', '&lt;'),
-            ('>', '&gt;'),
-        )
-        for chunk in chunks:
-            yield reduce(lambda s, r: s.replace(*r), replace_map, chunk)
+    def iterencode(self, *args, **kwargs):
+        # передаем через super, т.к. нам нужны переменные родительского класса
+        with _EncodeFunctionsPatcher(super(M3JSONEncoder, self)):
+            return super(M3JSONEncoder, self).iterencode(*args, **kwargs)
 
     def default(self, obj):
         # обработаем простейшие объекты,
