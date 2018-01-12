@@ -67,7 +67,13 @@ class TreeGetNodeAction(Action):
     url = '/node$'
 
     def context_declaration(self):
-        return [ACD(name='id', default=0, type=int, required=True, verbose_name=u'id группы справочника')]
+        return [ACD(
+            name='id',
+            default=0,
+            type=int,
+            required=True,
+            verbose_name=u'id группы справочника'
+        )]
 
     def run(self, request, context):
         try:
@@ -84,7 +90,13 @@ class TreeSaveNodeAction(Action):
     url = '/save_node$'
 
     def context_declaration(self):
-        return [ACD(name='id', default=0, type=int, required=True, verbose_name=u'id группы справочника')]
+        return [ACD(
+            name='id',
+            default=0,
+            type=int,
+            required=True,
+            verbose_name=u'id группы справочника'
+        )]
 
     def run(self, request, context):
         # Создаем форму для биндинга к ней
@@ -116,7 +128,13 @@ class TreeDeleteNodeAction(Action):
     def context_declaration(self):
         base = self.parent
         id_name = base.contextTreeIdName
-        return [ACD(name=id_name, default=0, type=int, required=True, verbose_name=u'id группы справочника')]
+        return [ACD(
+            name=id_name,
+            default=0,
+            type=int,
+            required=True,
+            verbose_name=u'id группы справочника'
+        )]
 
     def run(self, request, context):
         base = self.parent
@@ -147,9 +165,17 @@ class ListGetRowsAction(Action):
 
 
 class ListGetRowAction(Action):
+
     url = '/item$'
+
     def context_declaration(self):
-        return [ACD(name='id', default=0, type=int, required=True, verbose_name = u'id элемента справочника')]
+        return [ACD(
+            name='id',
+            default=0,
+            type=int,
+            required=True,
+            verbose_name=u'id элемента справочника'
+        )]
 
     def run(self, request, context):
         try:
@@ -164,11 +190,19 @@ class ListSaveRowAction(Action):
     url = '/row$'
 
     def context_declaration(self):
-        return [ACD(name='id', default=0, type=int, required=True, verbose_name = u'id элемента справочника')]
+        return [ACD(
+            name='id',
+            default=0,
+            type=int,
+            required=True,
+            verbose_name=u'id элемента справочника'
+        )]
 
     def run(self, request, context):
         try:
-            obj = utils.bind_request_form_to_object(request, self.parent.get_row, self.parent.edit_window)
+            obj = utils.bind_request_form_to_object(
+                request, self.parent.get_row, self.parent.edit_window
+            )
         except self.parent._nofound_exception:
             return OperationResult.by_message(MSG_DOESNOTEXISTS % context.id)
 
@@ -193,12 +227,20 @@ class ListEditRowWindowAction(Action):
     url = '/grid_edit_window$'
 
     def context_declaration(self):
-        return [ACD(name='id', default=0, type=int, required=True, verbose_name = u'id элемента справочника')]
+        return [ACD(
+            name='id',
+            default=0,
+            type=int,
+            required=True,
+            verbose_name=u'id элемента справочника'
+        )]
 
     def run(self, request, context):
         base = self.parent
         try:
-            win = utils.bind_object_from_request_to_form(request, base.get_row, base.edit_window)
+            win = utils.bind_object_from_request_to_form(
+                request, base.get_row, base.edit_window
+            )
         except self.parent._nofound_exception:
             return OperationResult.by_message(MSG_DOESNOTEXISTS % context.id)
 
@@ -211,8 +253,12 @@ class ListEditRowWindowAction(Action):
             win.make_read_only(
                 access_off=True, exclude_list=['cancel_btn', 'close_btn'])
 
-        # У окна может быть процедура доп. конфигурации под конкретный справочник
-        if hasattr(win, 'configure_for_dictpack') and callable(win.configure_for_dictpack):
+        # У окна может быть процедура доп. конфигурации под конкретный
+        # справочник
+        if (
+            hasattr(win, 'configure_for_dictpack') and
+            callable(win.configure_for_dictpack)
+        ):
             win.configure_for_dictpack(action=self, pack=self.parent,
                                        request=request, context=context)
 
@@ -238,15 +284,19 @@ class ListNewRowWindowAction(Action):
         # Создаем новую группу и биндим ее к форме
         obj = base.get_row()
         setattr(obj, base.list_parent_field + '_id', context.id)
-        win = base.edit_window(create_new = True)
+        win = base.edit_window(create_new=True)
         win.form.from_object(obj)
         # Донастраиваем форму
         if not win.title:
             win.title = base.title
         win.form.url = base.save_row_action.get_absolute_url()
 
-        # У окна может быть процедура доп. конфигурации под конкретный справочник
-        if hasattr(win, 'configure_for_dictpack') and callable(win.configure_for_dictpack):
+        # У окна может быть процедура доп. конфигурации под конкретный
+        # справочник
+        if (
+            hasattr(win, 'configure_for_dictpack') and
+            callable(win.configure_for_dictpack)
+        ):
             win.configure_for_dictpack(action=self, pack=self.parent,
                                        request=request, context=context)
 
@@ -260,12 +310,19 @@ class TreeEditNodeWindowAction(Action):
     url = '/node_edit_window$'
 
     def context_declaration(self):
-        return [ActionContextDeclaration(name='id', type=int, required=True, verbose_name=u'id группы справочника')]
+        return [ActionContextDeclaration(
+            name='id',
+            type=int,
+            required=True,
+            verbose_name=u'id группы справочника'
+        )]
 
     def run(self, request, context):
         base = self.parent
         try:
-            win = utils.bind_object_from_request_to_form(request, base.get_node, base.edit_node_window)
+            win = utils.bind_object_from_request_to_form(
+                request, base.get_node, base.edit_node_window
+            )
         except base._group_nofound_exception:
             return OperationResult.by_message(MSG_DOESNOTEXISTS % context.id)
 
@@ -278,7 +335,8 @@ class TreeEditNodeWindowAction(Action):
             win.make_read_only(
                 access_off=True, exclude_list=['close_btn', 'cancel_btn'])
 
-        # У окна может быть процедура доп. конфигурации под конкретный справочник
+        # У окна может быть процедура доп. конфигурации под конкретный
+        # справочник
         if hasattr(win, 'configure_for_dictpack') and callable(
                 win.configure_for_dictpack):
             win.configure_for_dictpack(
@@ -311,8 +369,12 @@ class TreeNewNodeWindowAction(Action):
             win.title = base.title
         win.form.url = base.save_node_action.get_absolute_url()
 
-        # У окна может быть процедура доп. конфигурации под конкретный справочник
-        if hasattr(win, 'configure_for_dictpack') and callable(win.configure_for_dictpack):
+        # У окна может быть процедура доп. конфигурации под конкретный
+        # справочник
+        if (
+            hasattr(win, 'configure_for_dictpack') and
+            callable(win.configure_for_dictpack)
+        ):
             win.configure_for_dictpack(action=self, pack=self.parent,
                                        request=request, context=context)
 
@@ -494,6 +556,7 @@ class SelectWindowAction(ListWindowAction):
 
         return ExtUIScriptResult(win)
 
+
 class BaseTreeDictionaryActions(ActionPack, ISelectablePack):
     """
     Пакет с действиями, специфичными для работы с иерархическими справочниками
@@ -586,11 +649,12 @@ class BaseTreeDictionaryActions(ActionPack, ISelectablePack):
             self.delete_node_action
         ])
 
-        # Исключение перехватываемое в экшенах, если объект или группа объектов не найдена
+        # Исключение перехватываемое в экшенах, если объект или группа объектов
+        # не найдена
         self._nofound_exception = ObjectNotFound
         self._group_nofound_exception = ObjectNotFound
 
-    #========================== ДЕРЕВО ===========================
+    # ========================== ДЕРЕВО ===========================
 
     def get_nodes(self, parent_id, filter):
         raise NotImplementedError()
@@ -607,8 +671,8 @@ class BaseTreeDictionaryActions(ActionPack, ISelectablePack):
     def delete_node(self, obj):
         raise NotImplementedError()
 
-    #================ ФУНКЦИИ ВОЗВРАЩАЮЩИЕ АДРЕСА ===============
-    #ISelectablePack
+    # ================ ФУНКЦИИ ВОЗВРАЩАЮЩИЕ АДРЕСА ===============
+    # ISelectablePack
     def get_select_url(self):
         """
         Возвращает адрес формы списка элементов справочника.
@@ -621,7 +685,7 @@ class BaseTreeDictionaryActions(ActionPack, ISelectablePack):
         """
         return self.list_window_action.get_absolute_url()
 
-    #ISelectablePack
+    # ISelectablePack
     def get_edit_url(self):
         """
         Возвращает адрес формы редактирования элемента справочника.
@@ -652,7 +716,7 @@ class BaseTreeDictionaryActions(ActionPack, ISelectablePack):
         """
         return self.nodes_like_rows_action.get_absolute_url()
 
-    #ISelectablePack
+    # ISelectablePack
     def get_autocomplete_url(self):
         """
         Получить адрес для запроса элементов
@@ -660,7 +724,7 @@ class BaseTreeDictionaryActions(ActionPack, ISelectablePack):
         """
         return self.get_nodes_like_rows_url()
 
-    #=================== ИЗМЕНЕНИЕ ДАННЫХ =======================
+    # =================== ИЗМЕНЕНИЕ ДАННЫХ =======================
 
     def get_rows(self, offset, limit, filter, parent_id):
         raise NotImplementedError()
@@ -677,7 +741,7 @@ class BaseTreeDictionaryActions(ActionPack, ISelectablePack):
     def delete_row(self, obj):
         raise NotImplementedError()
 
-    #ISelectablePack
+    # ISelectablePack
     def get_display_text(self, key, attr_name=None):
         """
         Получить отображаемое значение записи
@@ -685,28 +749,28 @@ class BaseTreeDictionaryActions(ActionPack, ISelectablePack):
         """
         raise NotImplementedError()
 
-    #ISelectablePack
+    # ISelectablePack
     def get_record(self, key):
         """
         Получить записи по ключу key
         """
         raise NotImplementedError()
 
-    #============ ДЛЯ ИЗМЕНЕНИЯ ОКОН ВЫБОРА НА ХОДУ ==============
+    # ============ ДЛЯ ИЗМЕНЕНИЯ ОКОН ВЫБОРА НА ХОДУ ==============
     def get_select_window(self, win):
         return win
 
     def get_list_window(self, win):
         return win
 
-    #======================= Drag&Drop ===========================
+    # ======================= Drag&Drop ===========================
     def drag_node(self, id, dest_id):
         raise NotImplementedError()
 
     def drag_item(self, id, dest_id):
         raise NotImplementedError()
 
-    #============ ДЛЯ ИЗМЕНЕНИЯ ОКОН РЕДАКТИРОВАНИЯ НА ХОДУ ======
+    # ============ ДЛЯ ИЗМЕНЕНИЯ ОКОН РЕДАКТИРОВАНИЯ НА ХОДУ ======
     def get_edit_window(self, win):
         return win
 
@@ -725,24 +789,40 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
     # Поля для поиска по умолчанию.
     DEFAULT_FILTER_FIELDS = ['code', 'name']
 
+    # -------------------------------------------------------------------------
     # Настройки для модели дерева
-    tree_model = None  # Сама модель дерева
-    tree_filter_fields = []  # Поля по которым производится поиск в дереве
-    tree_columns = []  # Список из кортежей с параметрами выводимых в дерево колонок
-    tree_parent_field = 'parent'  # Имя поля ссылающегося на группу
-    tree_readonly = False  # Если истина, то адреса экшенов дереву не назначаются
-    tree_order_field = ''
-    tree_drag_and_drop = True  # Разрешает перетаскивание внутри дерева
 
+    # Сама модель дерева
+    tree_model = None
+    # Поля по которым производится поиск в дереве
+    tree_filter_fields = []
+    # Список из кортежей с параметрами выводимых в дерево колонок
+    tree_columns = []
+    # Имя поля ссылающегося на группу
+    tree_parent_field = 'parent'
+    # Если истина, то адреса экшенов дереву не назначаются
+    tree_readonly = False
+    tree_order_field = ''
+    # Разрешает перетаскивание внутри дерева
+    tree_drag_and_drop = True
+    # -------------------------------------------------------------------------
     # Настройки модели списка
-    list_model = None  # Не обязательная модель списка связанного с деревом
-    list_columns = []  # Список из кортежей с параметрами выводимых в грид колонок
-    filter_fields = []  # Поля по которым производится поиск в списке
-    list_parent_field = 'parent'  # Имя поля ссылающегося на группу
-    list_readonly = False  # Если истина, то адреса экшенов гриду не назначаются
-    list_drag_and_drop = True  # Разрешает перетаскивание элементов из грида в другие группы дерева
+
+    # Не обязательная модель списка связанного с деревом
+    list_model = None
+    # Список из кортежей с параметрами выводимых в грид колонок
+    list_columns = []
+    # Поля по которым производится поиск в списке
+    filter_fields = []
+    # Имя поля ссылающегося на группу
+    list_parent_field = 'parent'
+    # Если истина, то адреса экшенов гриду не назначаются
+    list_readonly = False
+    # Разрешает перетаскивание элементов из грида в другие группы дерева
+    list_drag_and_drop = True
     list_order_field = ''
     list_paging = True
+    # -------------------------------------------------------------------------
 
     # Порядок сортировки элементов списка. Работает следующим образом:
     # 1. Если в list_columns модели списка есть поле code,
@@ -765,7 +845,7 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
             self.tree_filter_fields = self._default_tree_search_filter()
             self._group_nofound_exception = self.tree_model.DoesNotExist
 
-    def get_nodes(self, parent_id, filter, branch_id = None):
+    def get_nodes(self, parent_id, filter, branch_id=None):
         """
         Метод получения списка узлов дерева, которые
         """
@@ -1039,7 +1119,7 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
             row.save()
         return OperationResult()
 
-    #ISelectablePack
+    # ISelectablePack
     def get_edit_url(self):
         """
         Получить адрес для запроса диалога редактирования выбранного элемента
@@ -1055,7 +1135,7 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
             return self.get_edit_node_url()
         return None
 
-    #ISelectablePack
+    # ISelectablePack
     def get_display_text(self, key, attr_name=None):
         """
         Получить отображаемое значение записи
@@ -1074,7 +1154,7 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
                 return text
         return None
 
-    #ISelectablePack
+    # ISelectablePack
     def get_record(self, key):
         """ Получить запись по ключу key """
         row = None
@@ -1085,10 +1165,10 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
         return row
 
 
-#===============================================================================
+# =============================================================================
 # Сигналы, которые посылаются в процессе
 # работы подсистемы древовидных справочника
-#==============================================================================
+# =============================================================================
 
 # сигнал о том, что узлы дерева иерархического справочника подготовлены
 nodes_prepared = Signal(providing_args=['nodes'])

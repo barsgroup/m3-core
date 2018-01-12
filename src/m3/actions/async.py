@@ -24,7 +24,7 @@ logger = getLogger('django')
 # TODO: переделать по правильному - платформа не должна импортировать
 # модули контрибов
 
-if not 'm3_mutex' in get_installed_apps():
+if 'm3_mutex' not in get_installed_apps():
     # При сборке документации внешняя Django ничего не знает про m3_mutex
     logger.warning(
         u'For working async operations "m3_mutex" '

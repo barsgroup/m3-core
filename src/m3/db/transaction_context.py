@@ -39,11 +39,13 @@ from django.db import transaction
 
 _state = _local()
 
+
 def _reset_state():
     _state.rolled_back = set()
     _state.task_queue = []
     _state.cookies = []
     _state.situation = None
+
 
 _reset_state()
 

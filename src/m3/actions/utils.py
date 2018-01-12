@@ -241,7 +241,7 @@ def safe_delete_record(model, id=None):
         try:
             obj = model.objects.get(pk=id)
         except model.DoesNotExist:
-            #не нашли значит уже удалили
+            # не нашли значит уже удалили
             return True
     return safe_delete(obj)
 
@@ -369,7 +369,7 @@ def extract_int(request, key):
         # в следствии этого происходит ошибка
         # IOError: request data read error
 
-        #logger.warning(str(err))
+        # logger.warning(str(err))
         raise
 
     if value:

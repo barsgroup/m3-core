@@ -81,13 +81,17 @@ def send_controllers_contexts():
     assert prefix, 'Identity prefix (METRICS_PREFIX) should be specified!'
 
     ControllerCache.populate()
-    controllers = {}    
-    
+    controllers = {}
+
     controller_urls = sorted([c.url for c in ControllerCache._controllers])
     for url in controller_urls:
         controllers[get_hash(url)] = dict(url=url)
 
-    all_urls = [url for c in ControllerCache._controllers for url in c._url_patterns.keys()]
+    all_urls = [
+        url
+        for c in ControllerCache._controllers
+        for url in c._url_patterns.keys()
+    ]
     urls = dict([(get_hash(u), u) for u in all_urls])
 
     parts = prefix.split('.')
@@ -113,4 +117,6 @@ def send_controllers_contexts():
         urllib2.urlopen(req)
         logging.info('Successfully sent context information.')
     except urllib2.URLError as ue:
-        logging.error("Can't send contexts to {0}: {1}".format(endpoint_url, ue))
+        logging.error(
+            "Can't send contexts to {0}: {1}".format(endpoint_url, ue)
+        )

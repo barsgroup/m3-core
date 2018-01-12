@@ -17,7 +17,8 @@ def _date2str(*args):
     from m3 import date2str
     return date2str(*args)
 
-#============================= ИСКЛЮЧЕНИЯ =====================================
+
+# ============================= ИСКЛЮЧЕНИЯ ====================================
 class ActionContextException(Exception):
     """ Базовый класс для исключений контекста """
     pass
@@ -97,7 +98,7 @@ class CriticalContextBuildingError(ContextBuildingError):
     pass
 
 
-#================================== ПАРСЕРЫ ===================================
+# ================================== ПАРСЕРЫ ==================================
 def _make_datetime_parser(extractor, formats):
     def parse(value):
         for (fmt, length) in formats:
@@ -204,7 +205,7 @@ _PARSERS = {
 }
 
 
-#================================== КЛАССЫ ====================================
+# ================================== КЛАССЫ ===================================
 
 # "Стражник" для значения по умолчанию ActionContextDeclaration.
 _none = object()
@@ -285,7 +286,7 @@ class ActionContext(object):
                     for e in elements
                 ]
             else:
-                if not arg_type in _PARSERS:
+                if arg_type not in _PARSERS:
                     raise TypeError('Unknown parser "%r"!' % arg_type)
                 value = _PARSERS[arg_type](raw_value)
         except AssertionError:
@@ -418,7 +419,7 @@ class ActionContext(object):
         return result
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 class DeclarativeActionContext(ActionContext):
     """
     ActionContext, использующий декларативное описание контекста

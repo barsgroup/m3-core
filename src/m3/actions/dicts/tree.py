@@ -1,6 +1,7 @@
 # coding:utf-8
 from django.dispatch import Signal
 from m3_django_compat import atomic
+from m3_django_compat import get_request_params
 
 from m3 import RelatedError
 from m3.actions import ACD
@@ -231,9 +232,12 @@ class TreeEditNodeWindowAction(Action):
             win.make_read_only(
                 access_off=True, exclude_list=['close_btn', 'cancel_btn'])
 
-        # У окна может быть процедура доп. конфигурации под конкретный справочник
-        if hasattr(win, 'configure_for_dictpack') and callable(
-                win.configure_for_dictpack):
+        # У окна может быть процедура доп. конфигурации под конкретный
+        # справочник
+        if (
+            hasattr(win, 'configure_for_dictpack') and
+            callable(win.configure_for_dictpack)
+        ):
             win.configure_for_dictpack(
                 action=self, pack=self.parent,
                 request=request, context=context)
@@ -548,7 +552,7 @@ class BaseTreeDictionaryActions(ActionPack, IMultiSelectablePack):
             self.delete_node_action
         ])
 
-    #========================== ДЕРЕВО ===========================
+    # ========================== ДЕРЕВО ===========================
 
     def get_nodes(self, parent_id, filter):
         raise NotImplementedError()
@@ -571,15 +575,15 @@ class BaseTreeDictionaryActions(ActionPack, IMultiSelectablePack):
         """
         return self.list_window_action
 
-    #================ ФУНКЦИИ ВОЗВРАЩАЮЩИЕ АДРЕСА ===============
-    #ISelectablePack
+    # ================ ФУНКЦИИ ВОЗВРАЩАЮЩИЕ АДРЕСА ===============
+    # ISelectablePack
     def get_select_url(self):
         """
         Возвращает адрес формы списка элементов справочника.
         """
         return self.select_window_action.get_absolute_url()
 
-    #IMultiSelectablePack
+    # IMultiSelectablePack
     def get_multi_select_url(self):
         return self.multi_select_window_action.get_absolute_url()
 
@@ -589,7 +593,7 @@ class BaseTreeDictionaryActions(ActionPack, IMultiSelectablePack):
         """
         return self.list_window_action.get_absolute_url()
 
-    #ISelectablePack
+    # ISelectablePack
     def get_edit_url(self):
         """
         Возвращает адрес формы редактирования элемента справочника.
@@ -620,7 +624,7 @@ class BaseTreeDictionaryActions(ActionPack, IMultiSelectablePack):
         """
         return self.nodes_like_rows_action.get_absolute_url()
 
-    #ISelectablePack
+    # ISelectablePack
     def get_autocomplete_url(self):
         """
         Получить адрес для запроса элементов
@@ -628,7 +632,7 @@ class BaseTreeDictionaryActions(ActionPack, IMultiSelectablePack):
         """
         return self.get_nodes_like_rows_url()
 
-    #=================== ИЗМЕНЕНИЕ ДАННЫХ =======================
+    # =================== ИЗМЕНЕНИЕ ДАННЫХ =======================
 
     def get_rows(self, offset, limit, filter, parent_id):
         raise NotImplementedError()
@@ -645,7 +649,7 @@ class BaseTreeDictionaryActions(ActionPack, IMultiSelectablePack):
     def delete_row(self, obj):
         raise NotImplementedError()
 
-    #ISelectablePack
+    # ISelectablePack
     def get_display_text(self, key, attr_name=None):
         """
         Получить отображаемое значение записи
@@ -653,14 +657,14 @@ class BaseTreeDictionaryActions(ActionPack, IMultiSelectablePack):
         """
         raise NotImplementedError()
 
-    #ISelectablePack
+    # ISelectablePack
     def get_record(self, key):
         """
         Получить записи по ключу key
         """
         raise NotImplementedError()
 
-    #IMultiSelectablePack
+    # IMultiSelectablePack
     def get_display_dict(self, key, value_field='id', display_field='name'):
         """
         Получить список словарей, необходимый для представления выбранных
@@ -668,21 +672,21 @@ class BaseTreeDictionaryActions(ActionPack, IMultiSelectablePack):
         """
         raise NotImplementedError()
 
-    #============ ДЛЯ ИЗМЕНЕНИЯ ОКОН ВЫБОРА НА ХОДУ ==============
+    # ============ ДЛЯ ИЗМЕНЕНИЯ ОКОН ВЫБОРА НА ХОДУ ==============
     def get_select_window(self, win):
         return win
 
     def get_list_window(self, win):
         return win
 
-    #======================= Drag&Drop ===========================
+    # ======================= Drag&Drop ===========================
     def drag_node(self, id, dest_id):
         raise NotImplementedError()
 
     def drag_item(self, id, dest_id):
         raise NotImplementedError()
 
-    #============ ДЛЯ ИЗМЕНЕНИЯ ОКОН РЕДАКТИРОВАНИЯ НА ХОДУ ======
+    # ============ ДЛЯ ИЗМЕНЕНИЯ ОКОН РЕДАКТИРОВАНИЯ НА ХОДУ ======
     def get_edit_window(self, win):
         return win
 
@@ -701,23 +705,38 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
     # Поля для поиска по умолчанию.
     DEFAULT_FILTER_FIELDS = ['code', 'name']
 
+    # -------------------------------------------------------------------------
     # Настройки для модели дерева
-    tree_model = None  # Сама модель дерева
-    tree_filter_fields = []  # Поля по которым производится поиск в дереве
-    tree_columns = []  # Список из кортежей с параметрами выводимых в дерево колонок
-    tree_parent_field = 'parent'  # Имя поля ссылающегося на группу
-    tree_readonly = False  # Если истина, то адреса экшенов дереву не назначаются
-    tree_order_field = ''
 
+    # Сама модель дерева
+    tree_model = None
+    # Поля по которым производится поиск в дереве
+    tree_filter_fields = []
+    # Список из кортежей с параметрами выводимых в дерево колонок
+    tree_columns = []
+    # Имя поля ссылающегося на группу
+    tree_parent_field = 'parent'
+    # Если истина, то адреса экшенов дереву не назначаются
+    tree_readonly = False
+    tree_order_field = ''
+    # -------------------------------------------------------------------------
     # Настройки модели списка
-    list_model = None  # Не обязательная модель списка связанного с деревом
-    list_columns = []  # Список из кортежей с параметрами выводимых в грид колонок
-    filter_fields = []  # Поля по которым производится поиск в списке
-    list_parent_field = 'parent'  # Имя поля ссылающегося на группу
-    list_readonly = False  # Если истина, то адреса экшенов гриду не назначаются
-    list_drag_and_drop = True  # Разрешает перетаскивание элементов из грида в другие группы дерева
+
+    # Не обязательная модель списка связанного с деревом
+    list_model = None
+    # Список из кортежей с параметрами выводимых в грид колонок
+    list_columns = []
+    # Поля по которым производится поиск в списке
+    filter_fields = []
+    # Имя поля ссылающегося на группу
+    list_parent_field = 'parent'
+    # Если истина, то адреса экшенов гриду не назначаются
+    list_readonly = False
+    # Разрешает перетаскивание элементов из грида в другие группы дерева
+    list_drag_and_drop = True
     list_order_field = ''
     list_paging = True
+    # -------------------------------------------------------------------------
 
     # Порядок сортировки элементов списка. Работает следующим образом:
     # 1. Если в list_columns модели списка есть поле code,
@@ -1033,7 +1052,7 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
             row.save()
         return OperationResult()
 
-    #ISelectablePack
+    # ISelectablePack
     def get_edit_url(self):
         """
         Получить адрес для запроса диалога редактирования выбранного элемента
@@ -1049,7 +1068,7 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
             return self.get_edit_node_url()
         return None
 
-    #ISelectablePack
+    # ISelectablePack
     def get_display_text(self, key, attr_name=None):
         """
         Получить отображаемое значение записи
@@ -1068,7 +1087,7 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
                 return text
         return None
 
-    #ISelectablePack
+    # ISelectablePack
     def get_record(self, key):
         """ Получить запись по ключу key """
         row = None
@@ -1078,7 +1097,7 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
             row = self.get_node(key)
         return row
 
-    #IMultiSelectablePack
+    # IMultiSelectablePack
     def get_display_dict(self, key, value_field='id', display_field='name'):
         """
         Получить список словарей, необходимый для представления выбранных
@@ -1101,10 +1120,11 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
                     })
         return items
 
-#===============================================================================
+# =============================================================================
 # Сигналы, которые посылаются в процессе
 # работы подсистемы древовидных справочника
-#==============================================================================
+# =============================================================================
+
 
 # сигнал о том, что узлы дерева иерархического справочника подготовлены
 nodes_prepared = Signal(providing_args=['nodes'])

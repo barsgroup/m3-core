@@ -238,7 +238,7 @@ class M3JSONEncoder(json.JSONEncoder):
                     # если метод или свойство есть в классе,
                     # то проверим у него признак
                     class_attr_value = getattr(obj.__class__, attr, None)
-                    if not class_attr_value is None:
+                    if class_attr_value is not None:
                         json_encode = getattr(
                             class_attr_value, 'json_encode', False)
                         if json_encode:
@@ -275,7 +275,7 @@ class M3JSONEncoder(json.JSONEncoder):
                         else:
                             cleaned_dict[field_name + '_ref_name'] = getattr(
                                 getattr(obj, field_name), 'name')
-                except:
+                except:  # noqa
                     pass
             if len(attribute) > 6 and attribute.endswith('_cache'):
                 # вережим этот кусок, т.к. если есть кэш на ForeignKey,

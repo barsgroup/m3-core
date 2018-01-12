@@ -59,7 +59,6 @@ def rebuild_mptt_tree(
 
     def build_node(model, opts, parent_id, tree_id, left, level):
         qs = model_manager.filter(**{opts.parent_attr: parent_id})
-        #print 'tree=',tree_id,'left=',left,'level=',level
         right = left
         for node in qs:
             setattr(node, opts.tree_id_attr, tree_id)
@@ -77,9 +76,7 @@ def rebuild_mptt_tree(
     opts = model._meta
     qs = model_manager.filter(**{'%s__isnull' % opts.parent_attr: True})
     tree_id = 1
-    #l = len(qs)
     for node in qs:
-        #print 'tree=',tree_id, l
         setattr(node, opts.tree_id_attr, tree_id)
         setattr(node, opts.left_attr, 1)
         setattr(node, opts.level_attr, 0)
