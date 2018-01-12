@@ -1,10 +1,11 @@
-#coding:utf-8
+# coding:utf-8
 '''
 Интерфейсы
 ++++++++++
 '''
 
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
+from abc import abstractmethod
 
 
 class ISelectablePack(object):

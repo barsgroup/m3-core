@@ -1,17 +1,20 @@
 # coding: utf-8
-import json
 import hashlib
+import json
 import logging
 import time
 import urllib2
 
 from django.conf import settings
+from django.contrib.auth.signals import user_logged_in
+from django.contrib.auth.signals import user_logged_out
 from django.contrib.sessions.models import Session
-from django.db.models.signals import post_delete, post_save
-from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.db.models.signals import post_delete
+from django.db.models.signals import post_save
+from m3_django_compat import get_user_model
 
 from m3.actions import ControllerCache
-from m3_django_compat import get_user_model
+
 
 try:
     import pystatsd

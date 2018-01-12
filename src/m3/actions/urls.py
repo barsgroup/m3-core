@@ -5,10 +5,11 @@ import collections
 import inspect
 import warnings
 
-from m3 import caching
-from m3.actions import ControllerCache, Action
-
 from m3_django_compat import get_installed_apps
+
+from m3 import caching
+from m3.actions import Action
+from m3.actions import ControllerCache
 
 
 def _get_instance(obj):

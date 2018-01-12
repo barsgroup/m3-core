@@ -1,12 +1,12 @@
-#coding: utf-8
+# coding: utf-8
 """
 Результаты выполнения экшенов
 +++++++++++++++++++++++++++++
 """
 
-import json
-import abc
 from copy import copy
+import abc
+import json
 
 from django import http
 from django.conf import settings

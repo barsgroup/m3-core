@@ -2,21 +2,25 @@
 u"""Паки и экшены для работы со справочниками."""
 from logging import getLogger
 
-from m3.actions import (
-    ActionPack, Action, PreJsonResult, OperationResult, ACD
-)
 from m3_django_compat import atomic
-from m3_ext.ui.windows.complex import ExtDictionaryWindow
-from m3_ext.ui.misc.store import ExtJsonStore
-from m3_ext.ui.containers import ExtPagingBar
-from m3_ext.ui.results import ExtUIScriptResult
+from m3_django_compat import get_installed_apps
+from m3_django_compat import get_request_params
+
+from m3 import RelatedError
+from m3.actions import ACD
+from m3.actions import Action
+from m3.actions import ActionPack
+from m3.actions import OperationResult
+from m3.actions import PreJsonResult
 from m3.actions import utils
 from m3.actions.interfaces import ISelectablePack
 from m3.actions.results import ActionResult
-from m3.db import BaseObjectModel, safe_delete
-from m3 import RelatedError
-from m3_django_compat import get_installed_apps
-from m3_django_compat import get_request_params
+from m3.db import BaseObjectModel
+from m3.db import safe_delete
+from m3_ext.ui.containers import ExtPagingBar
+from m3_ext.ui.misc.store import ExtJsonStore
+from m3_ext.ui.results import ExtUIScriptResult
+from m3_ext.ui.windows.complex import ExtDictionaryWindow
 
 
 logger = getLogger('django')

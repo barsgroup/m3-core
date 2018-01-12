@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 """
 Модуль позволяющий реализовать управление порядком выполннения
 обработчиков сигналов возбужденных в контексте некоей операции,
@@ -31,11 +31,10 @@ with TransactionCM('user_import'):
             user.save()
 """
 
+from threading import local as _local
 from uuid import uuid4
 
 from django.db import transaction
-
-from threading import local as _local
 
 
 _state = _local()

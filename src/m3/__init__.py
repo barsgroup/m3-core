@@ -1,17 +1,18 @@
 # coding: utf-8
 u"""Платформа разработки приложений ERP типа на python и django."""
+from json.encoder import encode_basestring
+from json.encoder import encode_basestring_ascii
 import copy
 import datetime
 import decimal
 import json
-from json.encoder import encode_basestring_ascii, encode_basestring
-
 import sys
 
 from django.conf import settings
 from django.contrib import auth
 from django.db import models as dj_models
-from django.http import HttpResponseRedirect, HttpResponseServerError
+from django.http import HttpResponseRedirect
+from django.http import HttpResponseServerError
 from django.utils import datetime_safe
 from django.views.debug import ExceptionReporter
 from m3_django_compat import ModelOptions

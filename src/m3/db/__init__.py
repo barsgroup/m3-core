@@ -1,13 +1,18 @@
 # coding:utf-8
 import datetime
 
-from django.db import models, connection, transaction, router, connections
+from django.db import connection
+from django.db import connections
+from django.db import models
+from django.db import router
+from django.db import transaction
 from django.db.models.deletion import Collector
 from django.db.models.query import QuerySet
 from m3_django_compat import Manager
 from m3_django_compat import commit_unless_managed
 
-from m3 import json_encode, RelatedError
+from m3 import RelatedError
+from m3 import json_encode
 
 
 def safe_delete(model):

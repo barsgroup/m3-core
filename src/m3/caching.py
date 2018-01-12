@@ -1,11 +1,6 @@
-#coding:utf-8
-'''
-Различные модели кеширования информации в рантайме приложения
-
-@author: akvarats
-'''
-
+# coding:utf-8
 import threading
+
 
 class CacheStat(object):
     '''
@@ -16,6 +11,7 @@ class CacheStat(object):
         self.out_cache = 0 # число непопаданий в закешированные данные
         self.drops = 0 # количество сбросов кеша с момента создания
         self.full_drops = 0 # количество полных сбросов кеша с момента создания
+
 
 class RuntimeCacheMetaclass(type):
     '''
@@ -51,6 +47,7 @@ class RuntimeCacheMetaclass(type):
         klass.__init__ = default_init
 
         return klass
+
 
 class RuntimeCache(object):
     '''
@@ -391,9 +388,3 @@ class ModelObjectStorageFactory(object):
         '''
         for storage in self.storages.values():
             storage.drop_all()
-
-
-
-
-
-

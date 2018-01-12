@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
-
-import time
+# coding: utf-8
 import hashlib
+import time
 
 
 DEFAULT_STATSD_HOST = 'localhost'

@@ -1,7 +1,4 @@
-#coding:utf-8
-'''
-@author: pirogov
-'''
+# coding:utf-8
 import sys
 
 from django.core.management.base import BaseCommand

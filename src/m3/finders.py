@@ -4,9 +4,10 @@ from collections import OrderedDict
 from importlib import import_module
 import os
 
-from django.contrib.staticfiles.finders import AppDirectoriesFinder, BaseFinder
-from django.core.files.storage import FileSystemStorage
 from django.conf import settings
+from django.contrib.staticfiles.finders import AppDirectoriesFinder
+from django.contrib.staticfiles.finders import BaseFinder
+from django.core.files.storage import FileSystemStorage
 
 
 class RecursiveAppDirectoriesFinder(AppDirectoriesFinder):

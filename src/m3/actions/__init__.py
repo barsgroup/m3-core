@@ -6,10 +6,10 @@
 from functools import wraps
 from logging import getLogger
 import abc
-import inspect
 import importlib
-import threading
+import inspect
 import re
+import threading
 import warnings
 
 from django import http
@@ -17,38 +17,28 @@ from django.conf import settings
 from m3_django_compat import get_installed_apps
 import django
 
-
-from results import (
-    ActionResult,
-    PreJsonResult,
-    JsonResult,
-    HttpReadyResult,
-    TextResult,
-    XMLResult,
-    BaseContextedResult,
-    OperationResult,
-    ActionRedirectResult
-)
-
-from exceptions import (
-    ApplicationLogicException,
-    ActionException,
-    ActionNotFoundException,
-    ActionPackNotFoundException,
-    ReinitException,
-    ActionUrlIsNotDefined
-)
-
-from context import (
-    ActionContext,
-    ActionContextDeclaration,
-    DeclarativeActionContext,
-    RequiredFailed,
-    ContextBuildingError,
-    CriticalContextBuildingError,
-)
-
-from metrics import create_statsd_client
+from .context import ActionContext
+from .context import ActionContextDeclaration
+from .context import ContextBuildingError
+from .context import CriticalContextBuildingError
+from .context import DeclarativeActionContext
+from .context import RequiredFailed
+from .exceptions import ActionException
+from .exceptions import ActionNotFoundException
+from .exceptions import ActionPackNotFoundException
+from .exceptions import ActionUrlIsNotDefined
+from .exceptions import ApplicationLogicException
+from .exceptions import ReinitException
+from .metrics import create_statsd_client
+from .results import ActionRedirectResult
+from .results import ActionResult
+from .results import BaseContextedResult
+from .results import HttpReadyResult
+from .results import JsonResult
+from .results import OperationResult
+from .results import PreJsonResult
+from .results import TextResult
+from .results import XMLResult
 
 
 logger = getLogger('django')

@@ -1,6 +1,6 @@
-#coding:utf-8
-
+# coding:utf-8
 from django.db.models import signals as model_signals
+
 
 try:
     import mptt

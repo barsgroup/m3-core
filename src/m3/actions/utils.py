@@ -2,8 +2,8 @@
 u"""Вспомогательные функции используемые в паках."""
 import json
 
-from django.db.models.query_utils import Q
 from django.db import models
+from django.db.models.query_utils import Q
 from m3_django_compat import get_request_params
 
 from .exceptions import ApplicationLogicException
