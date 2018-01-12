@@ -7,6 +7,9 @@
 - Добавлена конфигурация для tox и интеграция tox с travis CI и coveralls
 - Обновлен README.md
 
+**2.2.13**
+- Исправлена ошибка многократной регистрации точек расширения
+
 **2.2.12**
 - Метод ``ControllerCache._get_installed_apps()`` перенесен в m3-django-compat.
 

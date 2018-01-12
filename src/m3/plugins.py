@@ -102,7 +102,7 @@ class ExtensionManager:
                 proc = getattr(module, 'register_extensions', None)
                 if callable(proc):
                     proc()
-            self._loaded = True
+            self.loaded = True
         finally:
             self._write_lock.release()
 
