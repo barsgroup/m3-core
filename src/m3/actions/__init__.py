@@ -3,6 +3,9 @@
 Основные объекты библиотеки: механизмы проверки прав, экшены, паки,
 контроллеры, кэш контроллеров
 """
+from __future__ import absolute_import
+from __future__ import print_function
+
 from functools import wraps
 from logging import getLogger
 import abc
@@ -15,6 +18,11 @@ import warnings
 from django import http
 from django.conf import settings
 from m3_django_compat import get_installed_apps
+from six import iteritems
+from six import string_types
+from six import text_type
+from six import with_metaclass
+from six.moves import map
 import django
 
 from .context import ActionContext
@@ -123,7 +131,7 @@ def _must_be_replaced_by(alternative):
             warnings.warn(
                 "'{clazz}.{method}' deprecated! Use '{alternative}'!".format(
                     clazz=class_name,
-                    method=fn.func_name,
+                    method=fn.__name__,
                     alternative=alternative
                 ), FutureWarning, 2)
             return fn(self, *args, **kwargs)
@@ -137,11 +145,10 @@ def _must_be_replaced_by(alternative):
 # =============================================================================
 
 
-class AbstractPermissionChecker(object):
+class AbstractPermissionChecker(with_metaclass(abc.ABCMeta, object)):
     """
     Абстрактный механизм проверки прав
     """
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def has_action_permission(self, request, action, subpermission=None):
@@ -698,7 +705,7 @@ class ActionPack(object):
                 pack = pack.parent
         else:
             path = [pack.url]
-        return '/'.join([pack.controller.url] + map(_clean_url, path))
+        return '/'.join([pack.controller.url] + list(map(_clean_url, path)))
 
     def get_permission_code(self):
         # метод оставлен для совместимости
@@ -874,7 +881,7 @@ class ActionController(object):
         """
         self._actions_by_name.clear()
         self._actions_by_type.clear()
-        for full_path, v in self._url_patterns.iteritems():
+        for full_path, v in iteritems(self._url_patterns):
             _, action = v
             self._add_action_to_search_dicts(action, full_path)
         # Обновлять _packs_by_name и _packs_by_type не нужно!
@@ -966,7 +973,7 @@ class ActionController(object):
             raise
         except ContextBuildingError as e:
             # некритичную ошибку - показываем пользователю
-            return OperationResult.by_message(unicode(e))
+            return OperationResult.by_message(text_type(e))
         except RequiredFailed as e:
             # если контекст неправильный, то возвращаем
             # фейльный результат операции
@@ -1090,7 +1097,7 @@ class ActionController(object):
         return self._find_action(type)
 
     def _find_pack(self, pack):
-        if isinstance(pack, basestring):
+        if isinstance(pack, string_types):
             inst = self._packs_by_name.get(pack)
         elif inspect.isclass(pack):
             inst = self._packs_by_type.get(pack)
@@ -1099,7 +1106,7 @@ class ActionController(object):
         return inst
 
     def _find_action(self, action):
-        if isinstance(action, basestring):
+        if isinstance(action, string_types):
             inst, _ = self._actions_by_name.get(action, (None, None))
         elif inspect.isclass(action):
             inst, _ = self._actions_by_type.get(action, (None, None))
@@ -1223,7 +1230,7 @@ class ActionController(object):
         left_packs = []
         right_packs = []
 
-        for url, value in self._url_patterns.iteritems():
+        for url, value in iteritems(self._url_patterns):
             packs_list, final_action = value
 
             # Поиск пака и соседей в списке
@@ -1312,7 +1319,7 @@ class ActionController(object):
         new_patterns = {}
         current_packs_slice = None
 
-        for url, value in self._url_patterns.iteritems():
+        for url, value in iteritems(self._url_patterns):
             packs_list, final_action = value
 
             # Поиск исходного пака и экшена в нём
@@ -1352,11 +1359,11 @@ class ActionController(object):
         Отладочный метод.
         Выводит в консоль список всех адрес зарегистрированных в контроллере.
         '''
-        print '==== CONTROLLER WITH URL: %s ======' % self.url
+        print('==== CONTROLLER WITH URL: %s ======' % self.url)
         for key in sorted(self._url_patterns.keys()):
-            print key
-        print
-        print 'Total patterns %s' % len(self._url_patterns.keys())
+            print(key)
+        print()
+        print('Total patterns %s' % len(list(self._url_patterns.keys())))
 
     def get_action_by_url(self, url):
         """
@@ -1388,7 +1395,7 @@ class ActionController(object):
         '''
         Возвращение всех паков в контроллере
         '''
-        return self._packs_by_name.values()
+        return list(self._packs_by_name.values())
 
     def reset(self):
         '''
@@ -1442,7 +1449,7 @@ class ControllerCache(object):
     @classmethod
     def get_action_url(cls, type):
         """ Возвращает URL экшена *type* по его имени или классу """
-        assert isinstance(type, basestring) or issubclass(type, Action)
+        assert isinstance(type, string_types) or issubclass(type, Action)
         cls.populate()
         for cont in cls._controllers:
             url = cont.get_action_url(type)
@@ -1621,14 +1628,14 @@ class ControllerCache(object):
             for app_name in get_installed_apps():
                 try:
                     module = importlib.import_module('.app_meta', app_name)
-                except ImportError, err:
+                except ImportError as err:
                     if err.args[0].find('No module named') == -1:
                         raise
                     continue
 
                 # расширение словаря overridde'ов
                 for original_cls, new_inst in (
-                    getattr(module, 'action_pack_overrides', {}).iteritems()
+                    iteritems(getattr(module, 'action_pack_overrides', {}))
                 ):
                     if inspect.isclass(original_cls):
                         original_cls = original_cls.get_short_name()
@@ -1654,7 +1661,7 @@ class ControllerCache(object):
         Отладочный метод.
         Выводит в консоль адреса всех контроллеров зарегистрированных в кэше.
         '''
-        print '------------ CONTROLLER CACHE DUMP ------------'
+        print('------------ CONTROLLER CACHE DUMP ------------')
         for cont in cls._controllers:
             cont.dump_urls()
 

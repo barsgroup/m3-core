@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import absolute_import
+
 from importlib import import_module
 from logging import getLogger
 import threading
@@ -97,7 +99,7 @@ class ExtensionManager:
             for app_name in settings.INSTALLED_APPS:
                 try:
                     module = import_module('.app_meta', app_name)
-                except ImportError, err:
+                except ImportError as err:
                     if err.args[0].find('No module named') == -1:
                         raise
                     continue

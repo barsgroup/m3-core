@@ -1,4 +1,6 @@
 # coding:utf-8
+from __future__ import absolute_import
+
 from django.dispatch import Signal
 from m3_django_compat import atomic
 from m3_django_compat import get_request_params
@@ -977,7 +979,7 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
                     ):
                         try:
                             obj.safe_delete()
-                        except RelatedError, e:
+                        except RelatedError as e:
                             message = e.args[0]
                     else:
                         if not safe_delete(obj):
@@ -990,7 +992,7 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
         # Тут пытаемся поймать ошибку из транзакции.
         try:
             return delete_row_in_transaction(self, objs)
-        except Exception, e:
+        except Exception as e:
             # Встроенный в Django IntegrityError не генерируется.
             # Кидаются исключения специфичные для каждого драйвера БД.
             # Но по спецификации PEP 249 все они называются IntegrityError

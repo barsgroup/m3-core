@@ -1,10 +1,15 @@
 # coding:utf-8
 u"""Вспомогательные функции используемые в паках."""
+from __future__ import absolute_import
+
 import json
 
 from django.db import models
 from django.db.models.query_utils import Q
 from m3_django_compat import get_request_params
+from six import integer_types
+from six.moves import map
+from six.moves import range
 
 from .exceptions import ApplicationLogicException
 
@@ -233,7 +238,7 @@ def safe_delete_record(model, id=None):
 
     from m3.db import safe_delete
     assert (isinstance(model, models.Model) or issubclass(model, models.Model))
-    assert (isinstance(id, int) or isinstance(id, long) or id is None)
+    assert (isinstance(id, integer_types) or id is None)
 
     if isinstance(model, models.Model):
         obj = model
@@ -368,8 +373,6 @@ def extract_int(request, key):
         # из-за того, что браузер разрывает соединение,
         # в следствии этого происходит ошибка
         # IOError: request data read error
-
-        # logger.warning(str(err))
         raise
 
     if value:
@@ -395,7 +398,7 @@ def extract_int_list(request, key):
     :rtype: list
     '''
     value = get_request_params(request).get(key, '')
-    values = map(int, value.split(','))
+    values = list(map(int, value.split(',')))
     return values
 
 

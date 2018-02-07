@@ -1,5 +1,8 @@
 # coding: utf-8
 u"""Платформа разработки приложений ERP типа на python и django."""
+from __future__ import absolute_import
+
+from functools import reduce
 from json.encoder import encode_basestring
 from json.encoder import encode_basestring_ascii
 import copy
@@ -98,7 +101,7 @@ class AutoLogout(object):
             last_time = request.session.get(self.session_key, None)
             if last_time is not None:
                 delta = datetime.datetime.now() - last_time
-                if delta.seconds / 60 > settings.INACTIVE_SESSION_LIFETIME:
+                if delta.seconds // 60 > settings.INACTIVE_SESSION_LIFETIME:
                     # После логаута сессия уже другая
                     # и присваивать время не нужно
                     auth.logout(request)
@@ -120,15 +123,15 @@ class _EncodeFunctionsPatcher(object):
 
     def __init__(self, encoder):
         self.encoder = encoder
-        self.func_globals = self.encoder.iterencode.im_func.func_globals
+        self._globals = self.encoder.iterencode.__func__.__globals__
 
     def __enter__(self):
-        self.func_globals['encode_basestring'] = _encode_basestring
-        self.func_globals['encode_basestring_ascii'] = _encode_basestring_ascii
+        self._globals['encode_basestring'] = _encode_basestring
+        self._globals['encode_basestring_ascii'] = _encode_basestring_ascii
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.func_globals['encode_basestring'] = encode_basestring
-        self.func_globals['encode_basestring_ascii'] = encode_basestring_ascii
+        self._globals['encode_basestring'] = encode_basestring
+        self._globals['encode_basestring_ascii'] = encode_basestring_ascii
 
 
 class M3JSONEncoder(json.JSONEncoder):
@@ -249,7 +252,7 @@ class M3JSONEncoder(json.JSONEncoder):
                             else:
                                 # иначе это было свойство или какой-то атрибут
                                 dict[attr] = value
-                except Exception, exc:
+                except Exception as exc:
                     # Вторая проблема с моделями в том,
                     # что dir кроме фактических полей возвращает ассессоры.
                     # При попытке обратиться к ним происходит запрос(!)

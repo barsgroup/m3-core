@@ -2,6 +2,7 @@
 """
 Базовые классы экшенпаков для справочников нового стиля
 """
+from __future__ import absolute_import
 
 from .simple import BaseDictionaryActions
 from .simple import BaseDictionaryModelActions

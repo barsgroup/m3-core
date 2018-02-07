@@ -14,7 +14,6 @@ from fabric.tasks import execute
 from . import dist
 from . import req
 from . import src
-from . import tests
 from ._settings import PROJECT_DIR
 
 

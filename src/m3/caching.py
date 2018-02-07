@@ -1,5 +1,11 @@
 # coding:utf-8
+from __future__ import absolute_import
+
 import threading
+
+from six import iteritems
+from six import itervalues
+from six import with_metaclass
 
 
 class CacheStat(object):
@@ -63,13 +69,12 @@ class RuntimeCacheMetaclass(type):
         return klass
 
 
-class RuntimeCache(object):
+class RuntimeCache(with_metaclass(RuntimeCacheMetaclass, object)):
     '''
     Класс, используемый для кеширования данных в рантайме приложения.
 
     Использование данного класса:
     '''
-    __metaclass__ = RuntimeCacheMetaclass
 
     def register_handler(self, handler):
         '''
@@ -130,10 +135,10 @@ class RuntimeCache(object):
             self.write_lock.acquire()
             if not self._need_populate(dims):
                 return False
-            for handler in self.handlers.itervalues():
+            for handler in itervalues(self.handlers):
                 prepared_data = handler(self, dims)
                 if isinstance(prepared_data, dict):
-                    for key, value in prepared_data.iteritems():
+                    for key, value in iteritems(prepared_data):
                         self.set(key, value)
         finally:
             self.write_lock.release()
@@ -296,7 +301,7 @@ class ObjectStorage(object):
         for handler in self.handlers:
             prepared_data = handler(self, dims)
             if isinstance(prepared_data, dict):
-                for key, value in prepared_data.iteritems():
+                for key, value in iteritems(prepared_data):
                     self.set(key, value)
 
         return True

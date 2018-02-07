@@ -31,6 +31,8 @@ with TransactionCM('user_import'):
             user.save()
 """
 
+from __future__ import absolute_import
+
 from threading import local as _local
 from uuid import uuid4
 

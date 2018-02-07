@@ -4,15 +4,18 @@
 ++++++++++
 '''
 
+from __future__ import absolute_import
+
 from abc import ABCMeta
 from abc import abstractmethod
 
+from six import with_metaclass
 
-class ISelectablePack(object):
+
+class ISelectablePack(with_metaclass(ABCMeta, object)):
     """
     Интерфейс pack-классов для выбора значений из полей ExtDictSelectField
     """
-    __metaclass__ = ABCMeta
 
     @abstractmethod
     def get_edit_url(self):

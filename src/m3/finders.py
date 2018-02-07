@@ -1,5 +1,7 @@
 # coding: utf-8
 """Static files finders."""
+from __future__ import absolute_import
+
 from collections import OrderedDict
 from importlib import import_module
 import os

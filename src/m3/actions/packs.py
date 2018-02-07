@@ -1,5 +1,7 @@
 # coding: utf-8
 u"""Паки и экшены для работы со справочниками."""
+from __future__ import absolute_import
+
 from logging import getLogger
 
 from m3_django_compat import atomic
@@ -705,7 +707,7 @@ class BaseDictionaryModelActions(BaseDictionaryActions):
                     ):
                         try:
                             obj.safe_delete()
-                        except RelatedError, e:
+                        except RelatedError as e:
                             message = e.args[0]
                     else:
                         if not safe_delete(obj):
@@ -717,7 +719,7 @@ class BaseDictionaryModelActions(BaseDictionaryActions):
         # Тут пытаемся поймать ошибку из транзакции.
         try:
             return delete_row_in_transaction(self, objs)
-        except Exception, e:
+        except Exception as e:
             # Встроенный в Django IntegrityError
             # не генерируется. Кидаются исключения
             # специфичные для каждого драйвера БД.
