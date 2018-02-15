@@ -1152,8 +1152,8 @@ class ActionController(object):
                 u'Pack must be an instance of ActionPack subclass!')
 
         # пак может быть перегруже
-        if pack.short_name in ControllerCache.overrides:
-            pack = ControllerCache.overrides[pack.short_name]
+        if pack.get_short_name() in ControllerCache.overrides:
+            pack = ControllerCache.overrides[pack.get_short_name()]
 
         self._build_pack_node(pack, [])
         if pack not in self.top_level_packs:
