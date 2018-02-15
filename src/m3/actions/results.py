@@ -1,21 +1,24 @@
-#coding: utf-8
+# coding: utf-8
 """
 Результаты выполнения экшенов
 +++++++++++++++++++++++++++++
 """
 
-import json
-import abc
+from __future__ import absolute_import
+
 from copy import copy
+import abc
+import json
 
 from django import http
 from django.conf import settings
+from six import iteritems
+from six import with_metaclass
 
-from context import ActionContext
+from .context import ActionContext
 
 
-class ActionResult(object):
-    __metaclass__ = abc.ABCMeta
+class ActionResult(with_metaclass(abc.ABCMeta, object)):
     """
     Класс описывает результат выполнения Action'а
     Данный класс является абстрактным.
@@ -137,9 +140,9 @@ class XMLResult(ActionResult):
         )
 
 
-#==============================================================================
+# =============================================================================
 # Результаты выполнения операции с заданным контекстом
-#==============================================================================
+# =============================================================================
 class BaseContextedResult(ActionResult):
     """
     Абстрактный базовый класс, который оперирует понятием результата
@@ -249,7 +252,7 @@ class ActionRedirectResult(object):
     def prepare_request(self, request):
         if self.context:
             new_post = copy(request.POST)
-            for k, v in new_post.__dict__.iteritems():
+            for k, v in iteritems(new_post.__dict__):
                 new_post[k] = getattr(self.context, k, v)
             request.POST = new_post
             del request._request

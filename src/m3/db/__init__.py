@@ -1,13 +1,21 @@
 # coding:utf-8
+from __future__ import absolute_import
+
 import datetime
 
-from django.db import models, connection, transaction, router, connections
+from django.db import connection
+from django.db import connections
+from django.db import models
+from django.db import router
+from django.db import transaction
 from django.db.models.deletion import Collector
 from django.db.models.query import QuerySet
 from m3_django_compat import Manager
 from m3_django_compat import commit_unless_managed
+import six
 
-from m3 import json_encode, RelatedError
+from m3 import RelatedError
+from m3 import json_encode
 
 
 def safe_delete(model):
@@ -25,7 +33,7 @@ def safe_delete(model):
             connection.ops.quote_name(model._meta.db_table), model.id)
         cursor.execute(sql)
         commit_unless_managed()
-    except Exception, e:
+    except Exception as e:
         # Встроенный в Django IntegrityError не генерируется.
         # Кидаются исключения, специфичные для каждого драйвера БД.
         # Но по спецификации PEP 249 все они называются IntegrityError
@@ -37,12 +45,12 @@ def safe_delete(model):
     # (т.к. стандартный пересчет вешается на метод self.delete()
     if hasattr(model, '_tree_manager') and callable(
             getattr(model._tree_manager, '_close_gap', None)):
-        #это, видимо, mptt модель
+        # это, видимо, mptt модель
         opts = model._meta
-        r = getattr(model, getattr(opts, 'right_attr', 'rght'))
-        l = getattr(model, getattr(opts, 'left_attr', 'lft'))
-        t = getattr(model, getattr(opts, 'tree_id_attr', 'tree_id'))
-        model._tree_manager._close_gap(r - l + 1, r, t)
+        right = getattr(model, getattr(opts, 'right_attr', 'rght'))
+        left = getattr(model, getattr(opts, 'left_attr', 'lft'))
+        tree = getattr(model, getattr(opts, 'tree_id_attr', 'tree_id'))
+        model._tree_manager._close_gap(right - left + 1, right, tree)
 
     models.signals.post_delete.send(sender=model.__class__, instance=model)
     return True
@@ -90,7 +98,7 @@ class BaseEnumerate(object):
         Используется для ограничения полей ORM и в качестве источника данных
         в ArrayStore и DataStore ExtJS
         """
-        return cls.values.items()
+        return list(cls.values.items())
 
     get_items = get_choices
 
@@ -100,7 +108,7 @@ class BaseEnumerate(object):
         Возвращает значение атрибута константы, которая используется в
         качестве ключа к словарю values
         """
-        if not isinstance(name, basestring):
+        if not isinstance(name, six.string_types):
             raise TypeError("'name' must be a string")
 
         if not name:
@@ -109,6 +117,7 @@ class BaseEnumerate(object):
         return cls.__dict__[name]
 
 
+@six.python_2_unicode_compatible
 class BaseObjectModel(models.Model):
     """
     Базовая модель для объектов системы.
@@ -121,9 +130,9 @@ class BaseObjectModel(models.Model):
         Отображение объекта по-умолчанию. Отличается от __unicode__ тем,
         что вызывается при json сериализации в m3.core.json.M3JSONEncoder
         """
-        return unicode(self)
+        return six.text_type(self)
 
-    def __unicode__(self):
+    def __str__(self):
         """ Определяет текстовое представление объекта """
         name = getattr(self, 'name', None) or getattr(self, 'fullname', None)
         if name:
@@ -164,7 +173,7 @@ class BaseObjectModel(models.Model):
         using = using or router.db_for_write(self.__class__, instance=self)
         collector = Collector(using=using)
         collector.collect([self])
-        return collector.data.items()
+        return list(collector.data.items())
 
     def delete_related(self, affected=None, using=None):
         """

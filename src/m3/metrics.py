@@ -1,23 +1,32 @@
 # coding: utf-8
-import json
+from __future__ import absolute_import
+
 import hashlib
+import json
 import logging
 import time
-import urllib2
 
 from django.conf import settings
+from django.contrib.auth.signals import user_logged_in
+from django.contrib.auth.signals import user_logged_out
 from django.contrib.sessions.models import Session
-from django.db.models.signals import post_delete, post_save
-from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.db.models.signals import post_delete
+from django.db.models.signals import post_save
+from m3_django_compat import get_user_model
+from six import text_type
+from six.moves import zip
+from six.moves.urllib.error import URLError
+from six.moves.urllib.request import Request
+from six.moves.urllib.request import urlopen
 
 from m3.actions import ControllerCache
-from m3_django_compat import get_user_model
+
 
 try:
     import pystatsd
 except ImportError as ie:
     raise ImportError('Metrics collection is enabled, but we failed to '
-                      'import "pystatsd": {0}'.format(unicode(ie)))
+                      'import "pystatsd": {0}'.format(text_type(ie)))
 
 User = get_user_model()
 
@@ -78,13 +87,17 @@ def send_controllers_contexts():
     assert prefix, 'Identity prefix (METRICS_PREFIX) should be specified!'
 
     ControllerCache.populate()
-    controllers = {}    
-    
+    controllers = {}
+
     controller_urls = sorted([c.url for c in ControllerCache._controllers])
     for url in controller_urls:
         controllers[get_hash(url)] = dict(url=url)
 
-    all_urls = [url for c in ControllerCache._controllers for url in c._url_patterns.keys()]
+    all_urls = [
+        url
+        for c in ControllerCache._controllers
+        for url in c._url_patterns.keys()
+    ]
     urls = dict([(get_hash(u), u) for u in all_urls])
 
     parts = prefix.split('.')
@@ -104,10 +117,14 @@ def send_controllers_contexts():
     }
 
     try:
-        req = urllib2.Request(endpoint_url,
-                              data=json.dumps(packet),
-                              headers={'Content-Type': 'application/json'})
-        urllib2.urlopen(req)
+        req = Request(
+            endpoint_url,
+            data=json.dumps(packet),
+            headers={'Content-Type': 'application/json'}
+        )
+        urlopen(req)
         logging.info('Successfully sent context information.')
-    except urllib2.URLError as ue:
-        logging.error("Can't send contexts to {0}: {1}".format(endpoint_url, ue))
+    except URLError as ue:
+        logging.error(
+            "Can't send contexts to {0}: {1}".format(endpoint_url, ue)
+        )

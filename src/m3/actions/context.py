@@ -1,12 +1,18 @@
 # coding:utf-8
 u"""Модуль, реализущий работу с контекстом выполнения операции."""
+from __future__ import absolute_import
+
 from decimal import Decimal
 from logging import getLogger
 import datetime
 import json
 
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from m3_django_compat import get_request_params
+from six import iteritems
+from six import python_2_unicode_compatible
+from six import string_types
+from six import text_type
 
 
 logger = getLogger('django')
@@ -17,7 +23,8 @@ def _date2str(*args):
     from m3 import date2str
     return date2str(*args)
 
-#============================= ИСКЛЮЧЕНИЯ =====================================
+
+# ============================= ИСКЛЮЧЕНИЯ ====================================
 class ActionContextException(Exception):
     """ Базовый класс для исключений контекста """
     pass
@@ -50,6 +57,7 @@ class ConversionFailed(ActionContextException):
             self.value, self.type)
 
 
+@python_2_unicode_compatible
 class ContextBuildingError(ActionContextException):
     u"""
     Ошибка построения контекста
@@ -78,7 +86,7 @@ class ContextBuildingError(ActionContextException):
 
     __str__ = __repr__
 
-    def __unicode__(self):
+    def __str__(self):
         log = []
         for title, data in (
             (u"Отсутствуют обязательные параметры:", self.requiremets),
@@ -97,7 +105,7 @@ class CriticalContextBuildingError(ContextBuildingError):
     pass
 
 
-#================================== ПАРСЕРЫ ===================================
+# ================================== ПАРСЕРЫ ==================================
 def _make_datetime_parser(extractor, formats):
     def parse(value):
         for (fmt, length) in formats:
@@ -168,8 +176,8 @@ _time_parser = _make_datetime_parser(
 
 
 _PARSERS = {
-    str: _make_simple_parser(unicode),  # Иду на поводу у хомячков (FIXME)
-    unicode: _make_simple_parser(unicode),
+    str: _make_simple_parser(text_type),  # Иду на поводу у хомячков (FIXME)
+    text_type: _make_simple_parser(text_type),
     int: _make_simple_parser(int),
     float: _make_simple_parser(float),
     Decimal: _make_simple_parser(Decimal),
@@ -204,7 +212,7 @@ _PARSERS = {
 }
 
 
-#================================== КЛАССЫ ====================================
+# ================================== КЛАССЫ ===================================
 
 # "Стражник" для значения по умолчанию ActionContextDeclaration.
 _none = object()
@@ -285,7 +293,7 @@ class ActionContext(object):
                     for e in elements
                 ]
             else:
-                if not arg_type in _PARSERS:
+                if arg_type not in _PARSERS:
                     raise TypeError('Unknown parser "%r"!' % arg_type)
                 value = _PARSERS[arg_type](raw_value)
         except AssertionError:
@@ -315,7 +323,7 @@ class ActionContext(object):
         key = value = ptype = None
         try:
             # переносим параметры в контекст из запроса
-            for key, value in get_request_params(request).iteritems():
+            for key, value in iteritems(get_request_params(request)):
                 # Пустые параметры не конвертируем,
                 # т.к. они могут вызвать ошибку
                 if not value:
@@ -384,7 +392,7 @@ class ActionContext(object):
             elif isinstance(obj, datetime.time):
                 result = _date2str(obj, '%H:%M')
             else:
-                result = force_unicode(obj)
+                result = force_text(obj)
 
             return result
 
@@ -392,7 +400,7 @@ class ActionContext(object):
         # и при этом только те, которые не callable
         data = dict(
             (k, v)
-            for k, v in self.__dict__.iteritems()
+            for k, v in iteritems(self.__dict__)
             if not (
                 k.startswith('_') or
                 callable(v)
@@ -418,7 +426,7 @@ class ActionContext(object):
         return result
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 class DeclarativeActionContext(ActionContext):
     """
     ActionContext, использующий декларативное описание контекста
@@ -440,7 +448,7 @@ class DeclarativeActionContext(ActionContext):
         'int': int,
         'float': float,
         'str': str,
-        'unicode': unicode,
+        'unicode': text_type,
         'decimal': Decimal,
     }
 
@@ -479,7 +487,7 @@ class DeclarativeActionContext(ActionContext):
         errors = []
         only_noncritical = True
 
-        for key, parser_data in rules.iteritems():
+        for key, parser_data in iteritems(rules):
             parser = parser_data['type']
             if not callable(parser):
                 try:
@@ -549,5 +557,5 @@ class DeclarativeActionContext(ActionContext):
         return isinstance(data, dict) or (
             isinstance(data, tuple) and
             len(data) == 2 and
-            isinstance(data[0], basestring)
+            isinstance(data[0], string_types)
         )

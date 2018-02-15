@@ -1,16 +1,20 @@
 # coding:utf-8
 u"""Экшены для работы в асинхронном режиме."""
-from abc import ABCMeta, abstractmethod
+from __future__ import absolute_import
+
+from abc import ABCMeta
+from abc import abstractmethod
 from logging import getLogger
 from threading import Thread
 import json
 
 from django import http
-
-from m3.actions import Action, ACD
-from m3.actions.results import ActionResult
-
 from m3_django_compat import get_installed_apps
+from six import with_metaclass
+
+from m3.actions import ACD
+from m3.actions import Action
+from m3.actions.results import ActionResult
 
 
 logger = getLogger('django')
@@ -23,7 +27,7 @@ logger = getLogger('django')
 # TODO: переделать по правильному - платформа не должна импортировать
 # модули контрибов
 
-if not 'm3_mutex' in get_installed_apps():
+if 'm3_mutex' not in get_installed_apps():
     # При сборке документации внешняя Django ничего не знает про m3_mutex
     logger.warning(
         u'For working async operations "m3_mutex" '
@@ -40,7 +44,7 @@ except ImportError:
     logger.warning(u'm3_mutex import error')
 
 
-class IBackgroundWorker(Thread):
+class IBackgroundWorker(with_metaclass(ABCMeta, Thread)):
     '''
     Абстрактный класс для исполнения кода в фоновом режиме.
     Соответсвующие методы должны быть определены разработчиком.
@@ -54,7 +58,6 @@ class IBackgroundWorker(Thread):
     (например если есть нужда использовать мутекс на уровне
     нескольких инстансов приложений)
     '''
-    __metaclass__ = ABCMeta
 
     def __init__(self, boundary='', context=None, *args, **kwargs):
         super(IBackgroundWorker, self).__init__()

@@ -1,75 +1,93 @@
-#coding:utf-8
-'''
-Различные модели кеширования информации в рантайме приложения
-
-@author: akvarats
-'''
+# coding:utf-8
+from __future__ import absolute_import
 
 import threading
+
+from six import iteritems
+from six import itervalues
+from six import with_metaclass
+
 
 class CacheStat(object):
     '''
     Класс, хранящий статистику обращения к кешу
     '''
     def __init__(self):
-        self.in_cache = 0  # число попаданий в закешированные данные
-        self.out_cache = 0 # число непопаданий в закешированные данные
-        self.drops = 0 # количество сбросов кеша с момента создания
-        self.full_drops = 0 # количество полных сбросов кеша с момента создания
+        # число попаданий в закешированные данные
+        self.in_cache = 0
+        # число непопаданий в закешированные данные
+        self.out_cache = 0
+        # количество сбросов кеша с момента создания
+        self.drops = 0
+        # количество полных сбросов кеша с момента создания
+        self.full_drops = 0
+
 
 class RuntimeCacheMetaclass(type):
     '''
-    Метакласс, который позволяет делать синглтоны, объединенные в иерархию, но при этом
-    каждый уровень иерархии имеет свой shared_state.
+    Метакласс, который позволяет делать синглтоны, объединенные в иерархию, но
+    при этом каждый уровень иерархии имеет свой shared_state.
 
-    Метакласс замещает __init__ управляемого класса, в результате чего этот метод
-    недоступен прикладным разработчикам. Для реализации логики инициализации класса
-    можно реализовать метод custom_init(*args, **kwargs).
+    Метакласс замещает __init__ управляемого класса, в результате чего этот
+    метод недоступен прикладным разработчикам. Для реализации логики
+    инициализации класса можно реализовать метод custom_init(*args, **kwargs).
     '''
     def __new__(cls, name, bases, attrs):
 
         def default_init(self, *args, **kwargs):
             self.__dict__ = self._shared_state
-            # добавляем возможность вызова кастомного инита (обычный уже использован и
-            # не может быть реализован в дочерних к RuntimeCache классах
+            # добавляем возможность вызова кастомного инита (обычный уже
+            # использован и не может быть реализован в дочерних к RuntimeCache
+            # классах
             if hasattr(self, 'custom_init') and callable(self.custom_init):
                 self.custom_init(*args, **kwargs)
 
-            # в случае, если внутри класса кеша задан обработчик, то мы пытаемся его зарегистировать
-            if hasattr(self, 'handler') and callable(self.handler) and not self.is_instance_registered():
+            # в случае, если внутри класса кеша задан обработчик, то мы
+            # пытаемся его зарегистировать
+            if (
+                hasattr(self, 'handler') and
+                callable(self.handler) and
+                not self.is_instance_registered()
+            ):
                 self.register_handler(self.handler)
 
-        klass = super(RuntimeCacheMetaclass, cls).__new__(cls, name, bases, attrs)
+        klass = super(RuntimeCacheMetaclass, cls).__new__(
+            cls, name, bases, attrs
+        )
 
         klass._shared_state = dict(
-            handlers = {}, # словарь Хэндлеров, с ключом в виде имени класса Хэндлера
-            handler_run_rules = {},
-            data = {}, # собственно те данные, которые лежат в кеше
-            write_lock = threading.RLock(),
-            stat = CacheStat(),
+            # словарь Хэндлеров, с ключом в виде имени класса Хэндлера
+            handlers={},
+            handler_run_rules={},
+            # собственно те данные, которые лежат в кеше
+            data={},
+            write_lock=threading.RLock(),
+            stat=CacheStat(),
         )
         klass.__init__ = default_init
 
         return klass
 
-class RuntimeCache(object):
+
+class RuntimeCache(with_metaclass(RuntimeCacheMetaclass, object)):
     '''
     Класс, используемый для кеширования данных в рантайме приложения.
 
     Использование данного класса:
     '''
-    __metaclass__ = RuntimeCacheMetaclass
 
     def register_handler(self, handler):
         '''
         Регистрирует обработчик заполнения кешированных данных.
         '''
-        # TODO: в качестве возможности будущего расширения функционала данного класса
-        # можно предусмотреть возможность указания хендлеров сборки кеша
+        # TODO: в качестве возможности будущего расширения функционала данного
+        # класса можно предусмотреть возможность указания хендлеров сборки кеша
         # для отдельных значений измерений. Для хранения маппинга хендлеров
         # и измерений предусмотрен словарь handler_run_rules
 
-        assert callable(handler), u'Обработчик заполнения кеша должен быть callable'
+        assert callable(handler), (
+            u'Обработчик заполнения кеша должен быть callable'
+        )
 
         # TODO: не совсем понятно, нужно ли ставить lock в данном случае
         try:
@@ -82,7 +100,7 @@ class RuntimeCache(object):
         '''
         Проверяет, если ли в списке обработчиков кеша указанный хендлер
         '''
-        return self.handlers.has_key(self.__class__.__name__)
+        return self.__class__.__name__ in self.handlers
 
     def _normalize_dimensions(self, dimensions):
         '''
@@ -90,14 +108,17 @@ class RuntimeCache(object):
         '''
         result = ()
         if dimensions:
-            result = dimensions if isinstance(dimensions, tuple) else (dimensions,)
+            if isinstance(dimensions, tuple):
+                result = dimensions
+            else:
+                result = (dimensions,)
         return result
 
     def _need_populate(self, cleaned_dims):
         '''
         Проверяет, нужно ли выполнять прогрузку кеша для указанных измерений
         '''
-        return not self.data.has_key(cleaned_dims)
+        return cleaned_dims not in self.data
 
     def _populate(self, dimensions):
         '''
@@ -114,10 +135,10 @@ class RuntimeCache(object):
             self.write_lock.acquire()
             if not self._need_populate(dims):
                 return False
-            for handler in self.handlers.itervalues():
+            for handler in itervalues(self.handlers):
                 prepared_data = handler(self, dims)
                 if isinstance(prepared_data, dict):
-                    for key,value in prepared_data.iteritems():
+                    for key, value in iteritems(prepared_data):
                         self.set(key, value)
         finally:
             self.write_lock.release()
@@ -147,7 +168,7 @@ class RuntimeCache(object):
         измерений
         '''
         dims = self._normalize_dimensions(dimensions)
-        return self.data.has_key(dims)
+        return dims in self.data
 
     def get_size(self):
         '''
@@ -194,17 +215,17 @@ class RuntimeCache(object):
 
 class IntegralRuntimeCache(RuntimeCache):
     '''
-    Кеш данных, которые собирает все данные однократно и не пересобирает их после этого.
-    (пока не произойдет сброс кеша)
+    Кеш данных, которые собирает все данные однократно и не пересобирает их
+    после этого. (пока не произойдет сброс кеша)
     '''
     def _need_populate(self, cleaned_dims):
         return not self.data
 
 
-#===============================================================================
+# =============================================================================
 # Кеши, которые работают не как синглтоны. Их экземпляры имеют свое состояние.
 # Данные кеши используются в процессе
-#===============================================================================
+# =============================================================================
 
 class ObjectStorage(object):
     '''
@@ -214,20 +235,27 @@ class ObjectStorage(object):
         self.data = {}
         self.handlers = []
 
-        # в случае, если внутри класса кеша задан обработчик, то мы пытаемся его зарегистировать
-        if hasattr(self, 'handler') and callable(self.handler) and not self.handler_registered(self.handler):
+        # в случае, если внутри класса кеша задан обработчик, то мы пытаемся
+        # его зарегистировать
+        if (
+            hasattr(self, 'handler') and
+            callable(self.handler) and
+            not self.handler_registered(self.handler)
+        ):
             self.register_handler(self.handler)
 
     def register_handler(self, handler):
         '''
         Регистрирует обработчик заполнения кешированных данных.
         '''
-        # TODO: в качестве возможности будущего расширения функционала данного класса
-        # можно предусмотреть возможность указания хендлеров сборки кеша
+        # TODO: в качестве возможности будущего расширения функционала данного
+        # класса можно предусмотреть возможность указания хендлеров сборки кеша
         # для отдельных значений измерений. Для хранения маппинга хендлеров
         # и измерений предусмотрен словарь handler_run_rules
 
-        assert callable(handler), u'Обработчик заполнения кеша должен быть callable'
+        assert callable(handler), (
+            u'Обработчик заполнения кеша должен быть callable'
+        )
 
         # TODO: не совсем понятно, нужно ли ставить lock в данном случае
         if handler not in self.handlers:
@@ -245,14 +273,17 @@ class ObjectStorage(object):
         '''
         result = ()
         if dimensions:
-            result = dimensions if isinstance(dimensions, tuple) else (dimensions,)
+            if isinstance(dimensions, tuple):
+                result = dimensions
+            else:
+                result = (dimensions,)
         return result
 
     def _need_populate(self, cleaned_dims):
         '''
         Проверяет, нужно ли выполнять прогрузку кеша для указанных измерений
         '''
-        return not self.data.has_key(cleaned_dims)
+        return cleaned_dims not in self.data
 
     def _populate(self, dimensions):
         '''
@@ -270,9 +301,8 @@ class ObjectStorage(object):
         for handler in self.handlers:
             prepared_data = handler(self, dims)
             if isinstance(prepared_data, dict):
-                for key,value in prepared_data.iteritems():
+                for key, value in iteritems(prepared_data):
                     self.set(key, value)
-
 
         return True
 
@@ -296,7 +326,7 @@ class ObjectStorage(object):
         измерений
         '''
         dims = self._normalize_dimensions(dimensions)
-        return self.data.has_key(dims)
+        return dims in self.data
 
     def get_size(self):
         '''
@@ -321,8 +351,8 @@ class ObjectStorage(object):
 
 class IntegralObjectStorage(ObjectStorage):
     '''
-    Кеш данных, которые собирает все данные однократно и не пересобирает их после этого.
-    (пока не произойдет сброс кеша)
+    Кеш данных, которые собирает все данные однократно и не пересобирает их
+    после этого. (пока не произойдет сброс кеша)
     '''
     def _need_populate(self, cleaned_dims):
         return not self.data
@@ -340,8 +370,8 @@ class ModelObjectStorage(IntegralObjectStorage):
 
     def handler(self, cache, dimensions):
         '''
-        Обработчик кеша. Выполняется чтение всех данных из указанной в конструкторе
-        модели.
+        Обработчик кеша. Выполняется чтение всех данных из указанной в
+        конструкторе модели.
         '''
         self.drop_all()
         if self.model:
@@ -350,9 +380,9 @@ class ModelObjectStorage(IntegralObjectStorage):
                 self.set(object.id, object)
 
 
-#===============================================================================
+# =============================================================================
 # Класс "Фабрика объектных хранилищ"
-#===============================================================================
+# =============================================================================
 class ModelObjectStorageFactory(object):
     '''
     Класс, отвечающий за организацию прозрачного интерфейса доступа к
@@ -373,11 +403,13 @@ class ModelObjectStorageFactory(object):
         В случае, если значение параметр model не является классом наследником
         django.db.Model, то выбрасывается исключение TypeError
         '''
-        if (not model or
-            not hasattr(model, 'objects')):
-            raise TypeError(u'Для построения объектного хранилища ожидается класс-наследник django.db.Model')
+        if not model or not hasattr(model, 'objects'):
+            raise TypeError(
+                u'Для построения объектного хранилища ожидается '
+                u'класс-наследник django.db.Model'
+            )
 
-        if self.storages.has_key(model):
+        if model in self.storages:
             result = self.storages[model]
         else:
             result = ModelObjectStorage(model=model)
@@ -391,9 +423,3 @@ class ModelObjectStorageFactory(object):
         '''
         for storage in self.storages.values():
             storage.drop_all()
-
-
-
-
-
-

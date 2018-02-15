@@ -1,7 +1,10 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
+from __future__ import absolute_import
 
-import time
 import hashlib
+import time
+
+from six import text_type
 
 
 DEFAULT_STATSD_HOST = 'localhost'
@@ -45,7 +48,7 @@ class StatsdClient(object):
         except ImportError as ie:
             raise ImportError(
                 'Metrics collection is enabled, but we failed to '
-                'import "pystatsd": {0}'.format(unicode(ie))
+                'import "pystatsd": {0}'.format(text_type(ie))
             )
         prefix = getattr(settings, 'METRICS_PREFIX', None)
         host = getattr(settings, 'METRICS_HOST', DEFAULT_STATSD_HOST)

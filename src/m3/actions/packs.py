@@ -1,22 +1,28 @@
 # coding: utf-8
 u"""Паки и экшены для работы со справочниками."""
+from __future__ import absolute_import
+
 from logging import getLogger
 
-from m3.actions import (
-    ActionPack, Action, PreJsonResult, OperationResult, ACD
-)
 from m3_django_compat import atomic
-from m3_ext.ui.windows.complex import ExtDictionaryWindow
-from m3_ext.ui.misc.store import ExtJsonStore
-from m3_ext.ui.containers import ExtPagingBar
-from m3_ext.ui.results import ExtUIScriptResult
+from m3_django_compat import get_installed_apps
+from m3_django_compat import get_request_params
+
+from m3 import RelatedError
+from m3.actions import ACD
+from m3.actions import Action
+from m3.actions import ActionPack
+from m3.actions import OperationResult
+from m3.actions import PreJsonResult
 from m3.actions import utils
 from m3.actions.interfaces import ISelectablePack
 from m3.actions.results import ActionResult
-from m3.db import BaseObjectModel, safe_delete
-from m3 import RelatedError
-from m3_django_compat import get_installed_apps
-from m3_django_compat import get_request_params
+from m3.db import BaseObjectModel
+from m3.db import safe_delete
+from m3_ext.ui.containers import ExtPagingBar
+from m3_ext.ui.misc.store import ExtJsonStore
+from m3_ext.ui.results import ExtUIScriptResult
+from m3_ext.ui.windows.complex import ExtDictionaryWindow
 
 
 logger = getLogger('django')
@@ -134,7 +140,7 @@ class DictSelectWindowAction(DictListWindowAction):
 
         # M prefer 12.12.10 >
         # win.column_name_on_select = "name"
-        #-----:
+        # -----:
         win.column_name_on_select = base.column_name_on_select
         # prefer <
 
@@ -478,7 +484,7 @@ class BaseDictionaryActions(ActionPack, ISelectablePack):
         # Исключение перехватываемое в экшенах, если объект не найден
         self._nofound_exception = ObjectNotFound
 
-    #==================== ФУНКЦИИ ВОЗВРАЩАЮЩИЕ АДРЕСА =====================
+    # ==================== ФУНКЦИИ ВОЗВРАЩАЮЩИЕ АДРЕСА =====================
     def get_list_url(self):
         """
         Возвращает адрес формы списка элементов справочника.
@@ -486,7 +492,7 @@ class BaseDictionaryActions(ActionPack, ISelectablePack):
         """
         return self.list_window_action.get_absolute_url()
 
-    #ISelectablePack
+    # ISelectablePack
     def get_select_url(self):
         """
         Возвращает адрес формы списка элементов справочника.
@@ -494,7 +500,7 @@ class BaseDictionaryActions(ActionPack, ISelectablePack):
         """
         return self.select_window_action.get_absolute_url()
 
-    #ISelectablePack
+    # ISelectablePack
     def get_edit_url(self):
         """
         Возвращает адрес формы редактирования элемента справочника.
@@ -507,7 +513,7 @@ class BaseDictionaryActions(ActionPack, ISelectablePack):
         """
         return self.rows_action.get_absolute_url()
 
-    #ISelectablePack
+    # ISelectablePack
     def get_autocomplete_url(self):
         """
         Возвращает адрес по которому запрашиваются элементы
@@ -515,7 +521,7 @@ class BaseDictionaryActions(ActionPack, ISelectablePack):
         """
         return self.get_rows_url()
 
-    #==================== ФУНКЦИИ ВОЗВРАЩАЮЩИЕ ДАННЫЕ =====================
+    # ==================== ФУНКЦИИ ВОЗВРАЩАЮЩИЕ ДАННЫЕ =====================
     def get_rows(self, offset, limit, filter, user_sort=''):
         """
         Метод который возвращает записи грида в виде
@@ -565,7 +571,7 @@ class BaseDictionaryActions(ActionPack, ISelectablePack):
         """
         raise NotImplementedError()
 
-    #ISelectablePack
+    # ISelectablePack
     def get_display_text(self, key, attr_name=None):
         """
         Получить отображаемое значение записи
@@ -581,14 +587,14 @@ class BaseDictionaryActions(ActionPack, ISelectablePack):
             else:
                 return text
 
-    #ISelectablePack
+    # ISelectablePack
     def get_record(self, key):
         """
         Получить значение записи по ключу key
         """
         return self.get_row(key)
 
-    #====================== РАБОТА С ОКНАМИ ===============================
+    # ====================== РАБОТА С ОКНАМИ ===============================
     def get_list_window(self, win):
         """
         Возвращает настроенное окно типа "Список" справочника
@@ -635,7 +641,10 @@ class BaseDictionaryModelActions(BaseDictionaryActions):
         '''
         Возвращает данные для грида справочника
         '''
-        sort_order = user_sort.split(',') if user_sort else self.list_sort_order
+        if user_sort:
+            sort_order = user_sort.split(',')
+        else:
+            sort_order = self.list_sort_order
         filter_fields = self._default_filter()
         query = self.model.objects.all()
         query = utils.apply_sort_order(query, self.list_columns, sort_order)
@@ -650,7 +659,10 @@ class BaseDictionaryModelActions(BaseDictionaryActions):
         return result
 
     def get_rows(self, offset, limit, filter, user_sort=''):
-        sort_order = user_sort.split(',') if user_sort else self.list_sort_order
+        if user_sort:
+            sort_order = user_sort.split(',')
+        else:
+            sort_order = self.list_sort_order
         filter_fields = self._default_filter()
         query = utils.apply_sort_order(
             self.model.objects, self.list_columns, sort_order)
@@ -660,14 +672,6 @@ class BaseDictionaryModelActions(BaseDictionaryActions):
             query = query[offset: offset + limit]
         result = {'rows': list(query.all()), 'total': total}
         return result
-
-#    def modify_rows_query(self, query, request, context):
-#        '''
-#        Модифицирует запрос на получение данных.
-#        Данный метод необходимо определить в
-#        дочерних классах.
-#        '''
-#        return query
 
     def get_row(self, id):
         assert isinstance(id, int)
@@ -694,12 +698,16 @@ class BaseDictionaryModelActions(BaseDictionaryActions):
                 message = u'Элемент не существует в базе данных.'
             else:
                 for obj in objs:
-                    if (isinstance(obj, BaseObjectModel) or
-                        (hasattr(obj, 'safe_delete') and
-                        callable(obj.safe_delete))):
+                    if (
+                        isinstance(obj, BaseObjectModel) or
+                        (
+                            hasattr(obj, 'safe_delete') and
+                            callable(obj.safe_delete)
+                        )
+                    ):
                         try:
                             obj.safe_delete()
-                        except RelatedError, e:
+                        except RelatedError as e:
                             message = e.args[0]
                     else:
                         if not safe_delete(obj):
@@ -711,7 +719,7 @@ class BaseDictionaryModelActions(BaseDictionaryActions):
         # Тут пытаемся поймать ошибку из транзакции.
         try:
             return delete_row_in_transaction(self, objs)
-        except Exception, e:
+        except Exception as e:
             # Встроенный в Django IntegrityError
             # не генерируется. Кидаются исключения
             # специфичные для каждого драйвера БД.
@@ -748,7 +756,9 @@ class BaseEnumerateDictionary(BaseDictionaryActions):
     # Класс перечисление с которым работает справочник
     enumerate_class = None
 
-    list_paging = False  # Значений как правило мало и они влезают в одну страницу грида
+    # Значений как правило мало и они влезают в одну страницу грида
+    list_paging = False
+
     list_readonly = True
     list_columns = [('code', 'Код', 15),
                     ('name', 'Наименование')]
@@ -780,7 +790,7 @@ class BaseEnumerateDictionary(BaseDictionaryActions):
             ' defined in %s' % (id, self.enumerate_class))
         return id
 
-    #ISelectablePack
+    # ISelectablePack
     def get_display_text(self, key, attr_name=None):
         """
         Получить отображаемое значение записи
@@ -790,6 +800,6 @@ class BaseEnumerateDictionary(BaseDictionaryActions):
         text = self.enumerate_class.values.get(row_id, '')
         return text
 
-    #ISelectablePack
+    # ISelectablePack
     def get_record(self, key):
         return self.get_row(key)

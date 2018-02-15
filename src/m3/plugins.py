@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import absolute_import
+
 from importlib import import_module
 from logging import getLogger
 import threading
@@ -60,22 +62,24 @@ class ExtensionHandler:
         self.call_type = call_type
 
 
-ExtensionListener = ExtensionHandler # совместимость
+ExtensionListener = ExtensionHandler  # совместимость
+
 
 class ExtensionManager:
     '''
     Класс, который управляет точками расширения приложений
     '''
     __shared_state = dict(
-        loaded = False,
-        # словарь точек расширения. ключом являются наименование точки ExtensionPoint.name
-        extensions = {},
+        loaded=False,
+        # словарь точек расширения. ключом являются наименование точки
+        # ExtensionPoint.name
+        extensions={},
         # словарь листенер, которые выполняются для точек расширения
         # ключом является наименование точки расширения, значениями - список
-        listeners = {},
+        listeners={},
         # стек выполнения листенеров
-        stack = {},
-        _write_lock = threading.RLock(),
+        stack={},
+        _write_lock=threading.RLock(),
     )
 
     def __init__(self):
@@ -95,7 +99,7 @@ class ExtensionManager:
             for app_name in settings.INSTALLED_APPS:
                 try:
                     module = import_module('.app_meta', app_name)
-                except ImportError, err:
+                except ImportError as err:
                     if err.args[0].find('No module named') == -1:
                         raise
                     continue
@@ -111,12 +115,14 @@ class ExtensionManager:
         Проверяет точку расширения на возможность регистрации
         в менеджере
         '''
-        return (extension_point and
-                isinstance(extension_point, ExtensionPoint) and
-                extension_point.name and
-                extension_point.name.strip() and
-                isinstance(extension_point.default_listener, ExtensionListener) and
-                not self.extensions.has_key(extension_point.name))
+        return (
+            extension_point and
+            isinstance(extension_point, ExtensionPoint) and
+            extension_point.name and
+            extension_point.name.strip() and
+            isinstance(extension_point.default_listener, ExtensionListener) and
+            extension_point.name not in self.extensions
+        )
 
     def register_point(self, extension_point):
         '''
@@ -127,9 +133,9 @@ class ExtensionManager:
 
         point_key = extension_point.name.strip()
         self.extensions[point_key] = extension_point
-        self.listeners[point_key] = [extension_point.default_listener,]
+        self.listeners[point_key] = [extension_point.default_listener]
 
-    append_point = register_point # для совместимости
+    append_point = register_point  # для совместимости
 
     def register_point_external(self, extension_point):
         '''
@@ -150,8 +156,11 @@ class ExtensionManager:
         self._write_lock.acquire()
         try:
             self.register_point(extension_point)
-        except:
-            logger.exception(u'Не удалось зарегистрировать точку расширения \'%s\'' % extension_point.name)
+        except:  # noqa
+            logger.exception(
+                u"Не удалось зарегистрировать точку расширения '%s'"
+                .format(extension_point.name)
+            )
         finally:
             self._write_lock.release()
 
@@ -160,15 +169,17 @@ class ExtensionManager:
         Проверяет, существует ли во внутреннем кеше определение
         точки расширения с указанным именем
         '''
-        return self.extensions.has_key(extension_point_name)
+        return extension_point_name in self.extensions
 
     def register_handler(self, extension_name, listener):
         '''
         Добавляет листенер точки расширения с именем extension_name
         '''
-        if (not listener or
+        if (
+            not listener or
             not isinstance(listener, ExtensionListener) or
-            not listener.handler):
+            not listener.handler
+        ):
                 # передали неправильное определение листенера
                 # ничего не делаем
                 return
@@ -177,7 +188,7 @@ class ExtensionManager:
         except KeyError:
             raise ExtensionPointDoesNotExist(extension_name=extension_name)
 
-    append_listener = register_handler # для совместимости
+    append_listener = register_handler  # для совместимости
 
     def execute(self, extension_name, *args, **kwargs):
         '''
@@ -187,22 +198,32 @@ class ExtensionManager:
         if not self.loaded:
             self._populate()
 
-        if not self.extensions.has_key(extension_name) or not self.listeners.has_key(extension_name):
+        if (
+            extension_name not in self.extensions or
+            extension_name not in self.listeners
+        ):
             return None
 
-        if  not self.stack.has_key(extension_name) or not self.stack[extension_name]:
+        if (
+            extension_name not in self.stack or
+            not self.stack[extension_name]
+        ):
             # необходимо выполнить подготовку стека вызовов
             listener_stack = []
-            if len(self.listeners[extension_name]) == 1 and not self.listeners[extension_name]:
+            if (
+                len(self.listeners[extension_name]) == 1 and
+                not self.listeners[extension_name]
+            ):
                 # обработка случая, когда в качестве дефолтного листенера задан
                 # пустой обработчик и больше обработчиков нет
-                listener_stack = [None,]
+                listener_stack = [None]
             else:
                 for listener in self.listeners[extension_name]:
                     if not listener or not listener.handler:
                         continue
-                    if listener.call_type == ExtensionListener.INSTEAD_OF_PARENT:
-                        listener_stack = [listener,]
+                    INSTEAD_OF_PARENT = ExtensionListener.INSTEAD_OF_PARENT
+                    if listener.call_type == INSTEAD_OF_PARENT:
+                        listener_stack = [listener]
                     elif listener.call_type == ExtensionListener.BEFORE_PARENT:
                         listener_stack.insert(0, listener)
                     else:
@@ -220,7 +241,8 @@ class ExtensionManager:
 
     def get_handlers(self, extension_name):
         '''
-        Возвращает список хендлеров, которые объявлены для указанной точки расширения.
+        Возвращает список хендлеров, которые объявлены для указанной точки
+        расширения.
 
         Хендлеры возвращаются списком. Элементы данного списка идут в порядке
         их регистрации
@@ -229,12 +251,13 @@ class ExtensionManager:
         return self.listeners.get(extension_name, [])
 
 
-#===============================================================================
+# =============================================================================
 # Декораторы для работы с точками расширения
-#===============================================================================
+# =============================================================================
 def extension_point(name=''):
     '''
-    Декортатор, с помощью которого определяется точка расширения c именем *name*.
+    Декортатор, с помощью которого определяется точка расширения c именем
+    *name*.
 
     Данный декоратор должен использоваться над дефолтным хендлером
     точки расширения с указанным именем name
@@ -245,6 +268,11 @@ def extension_point(name=''):
         # формируем определение точки расширения
         if not ExtensionManager().check_point_exists(name):
             # пытаемся добавить точку расширения
-            ExtensionManager().register_point_external(ExtensionPoint(name=name,default_listener=ExtensionHandler(f)))
+            ExtensionManager().register_point_external(
+                ExtensionPoint(
+                    name=name,
+                    default_listener=ExtensionHandler(f)
+                )
+            )
         return wrapper
     return inner

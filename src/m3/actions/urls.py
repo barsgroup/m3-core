@@ -1,14 +1,17 @@
 # coding: utf-8
 u"""Хелперы для отработки расширяемых конфигураций url'ов."""
+from __future__ import absolute_import
+
 from importlib import import_module
 import collections
 import inspect
 import warnings
 
-from m3 import caching
-from m3.actions import ControllerCache, Action
-
 from m3_django_compat import get_installed_apps
+
+from m3 import caching
+from m3.actions import Action
+from m3.actions import ControllerCache
 
 
 def _get_instance(obj):
@@ -38,7 +41,7 @@ def get_app_urlpatterns():
     for app_name in get_installed_apps():
         try:
             module = import_module('.app_meta', app_name)
-        except ImportError, err:
+        except ImportError as err:
             # по идее, такая ошибка возникает в
             # случае, если у нас для
             # установленного приложения
@@ -98,6 +101,7 @@ def get_url(action):
             break
     return action_data[1] if action_data else ''
 
+
 get_acton_url = get_url
 
 
@@ -129,9 +133,9 @@ def get_pack_by_url(url):
     return None
 
 
-#==============================================================================
+# =============================================================================
 # Кеш, используемый для хранения соответствия экшенов
-#==============================================================================
+# =============================================================================
 class ActionsNameCache(caching.IntegralRuntimeCache):
     '''
     Кеш, используемый для хранения соответствия имен экшенов и паков
