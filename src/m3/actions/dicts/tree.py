@@ -2,9 +2,6 @@
 from __future__ import absolute_import
 
 from django.dispatch import Signal
-from m3_django_compat import atomic
-from m3_django_compat import get_request_params
-
 from m3 import RelatedError
 from m3.actions import ACD
 from m3.actions import Action
@@ -17,6 +14,8 @@ from m3.actions.packs import ListDeleteRowAction
 from m3.actions.results import ActionResult
 from m3.db import BaseObjectModel
 from m3.db import safe_delete
+from m3_django_compat import atomic
+from m3_django_compat import get_request_params
 from m3_ext.ui.containers import ExtPagingBar
 from m3_ext.ui.misc.store import ExtJsonStore
 from m3_ext.ui.results import ExtUIScriptResult

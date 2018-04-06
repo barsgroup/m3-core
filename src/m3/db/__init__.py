@@ -10,12 +10,11 @@ from django.db import router
 from django.db import transaction
 from django.db.models.deletion import Collector
 from django.db.models.query import QuerySet
+from m3 import RelatedError
+from m3 import json_encode
 from m3_django_compat import Manager
 from m3_django_compat import commit_unless_managed
 import six
-
-from m3 import RelatedError
-from m3 import json_encode
 
 
 def safe_delete(model):

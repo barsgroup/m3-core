@@ -12,14 +12,13 @@ from django.contrib.auth.signals import user_logged_out
 from django.contrib.sessions.models import Session
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
+from m3.actions import ControllerCache
 from m3_django_compat import get_user_model
 from six import text_type
 from six.moves import zip
 from six.moves.urllib.error import URLError
 from six.moves.urllib.request import Request
 from six.moves.urllib.request import urlopen
-
-from m3.actions import ControllerCache
 
 
 try:
