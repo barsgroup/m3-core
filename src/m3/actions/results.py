@@ -89,7 +89,6 @@ class PreJsonResult(ActionResult):
         if settings.DEBUG:
             encoder.indent = 4
             encoder.separators = (',', ': ')
-            encoder.sort_keys = True
 
         result = encoder.encode(self.data)
         response = http.HttpResponse(result, content_type='application/json')
