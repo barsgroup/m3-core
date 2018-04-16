@@ -1,7 +1,10 @@
 #coding: utf-8
 
+from __future__ import absolute_import
 from operator import attrgetter as _attrgetter
 from django.db.models.fields.related import RelatedField as _RelatedField
+import six
+from functools import reduce
 
 
 #==============================================================================
@@ -87,7 +90,7 @@ def model_to_dict(obj, include=None, exclude=None):
             if is_fk and val is not None:
                 val = {
                     'id': getattr(val, 'id', None),
-                    '__unicode__': unicode(val)
+                    '__unicode__': six.text_type(val)
                 }
             res[fld.attname] = val
     return res

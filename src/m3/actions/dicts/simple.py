@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from __future__ import absolute_import
 from django.db import transaction
 from django.conf import settings
 
@@ -688,7 +689,7 @@ class BaseDictionaryModelActions(BaseDictionaryActions):
                         callable(obj.safe_delete))):
                         try:
                             obj.safe_delete()
-                        except RelatedError, e:
+                        except RelatedError as e:
                             message = e.args[0]
                     else:
                         if not safe_delete(obj):
@@ -700,7 +701,7 @@ class BaseDictionaryModelActions(BaseDictionaryActions):
         # Тут пытаемся поймать ошибку из транзакции.
         try:
             return delete_row_in_transaction(self, objs)
-        except Exception, e:
+        except Exception as e:
             # Встроенный в Django IntegrityError
             # не генерируется. Кидаются исключения
             # специфичные для каждого драйвера БД.
@@ -790,7 +791,7 @@ class BaseEnumerateDictionary(BaseDictionaryActions):
             'Attribute enumerate_class is not defined.')
         data = []
         # сортировка по ключам
-        keys = self.enumerate_class.values.keys()
+        keys = list(self.enumerate_class.values.keys())
         keys.sort()
 
         for k in keys:
@@ -809,7 +810,7 @@ class BaseEnumerateDictionary(BaseDictionaryActions):
         сам id хранится в БД
         """
         assert isinstance(id, int)
-        assert id in self.enumerate_class.keys(), (
+        assert id in list(self.enumerate_class.keys()), (
             'Enumarate key "%s" is not'
             ' defined in %s' % (id, self.enumerate_class))
         return id

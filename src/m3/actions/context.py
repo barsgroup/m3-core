@@ -1,13 +1,15 @@
 # coding: utf-8
 u""""Модуль, реализущий работу с контекстом выполнения операции."""
 
+from __future__ import absolute_import
 import json
 import datetime
 from decimal import Decimal
 from logging import getLogger
 
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_str
 from m3_django_compat import get_request_params
+import six
 
 
 logger = getLogger('django')
@@ -169,8 +171,8 @@ _time_parser = _make_datetime_parser(
 
 
 _PARSERS = {
-    str: _make_simple_parser(unicode),  # Иду на поводу у хомячков (FIXME)
-    unicode: _make_simple_parser(unicode),
+    str: _make_simple_parser(six.text_type),  # Иду на поводу у хомячков (FIXME)
+    six.text_type: _make_simple_parser(six.text_type),
     int: _make_simple_parser(int),
     float: _make_simple_parser(float),
     Decimal: _make_simple_parser(Decimal),
@@ -316,7 +318,7 @@ class ActionContext(object):
         key = value = ptype = None
         try:
             # переносим параметры в контекст из запроса
-            for key, value in get_request_params(request).iteritems():
+            for key, value in six.iteritems(get_request_params(request)):
                 # Пустые параметры не конвертируем,
                 # т.к. они могут вызвать ошибку
                 if not value:
@@ -385,7 +387,7 @@ class ActionContext(object):
             elif isinstance(obj, datetime.time):
                 result = _date2str(obj, '%H:%M')
             else:
-                result = force_unicode(obj)
+                result = force_str(obj)
 
             return result
 
@@ -393,7 +395,7 @@ class ActionContext(object):
         # и при этом только те, которые не callable
         data = dict(
             (k, v)
-            for k, v in self.__dict__.iteritems()
+            for k, v in six.iteritems(self.__dict__)
             if not (
                 k.startswith('_') or
                 callable(v)
@@ -441,7 +443,7 @@ class DeclarativeActionContext(ActionContext):
         'int': int,
         'float': float,
         'str': str,
-        'unicode': unicode,
+        'unicode': six.text_type,
         'decimal': Decimal,
 
         # >>> int_or_zero('')
@@ -496,7 +498,7 @@ class DeclarativeActionContext(ActionContext):
         errors = []
         only_noncritical = True
 
-        for key, parser_data in rules.iteritems():
+        for key, parser_data in six.iteritems(rules):
             parser = parser_data['type']
             if not callable(parser):
                 try:
@@ -566,5 +568,5 @@ class DeclarativeActionContext(ActionContext):
         return isinstance(data, dict) or (
             isinstance(data, tuple) and
             len(data) == 2 and
-            isinstance(data[0], basestring)
+            isinstance(data[0], six.string_types)
         )

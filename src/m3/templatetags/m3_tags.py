@@ -4,6 +4,7 @@ Created on 25.10.2011
 
 @author: akvarats
 '''
+from __future__ import absolute_import
 from django import template
 
 from m3.actions import urls

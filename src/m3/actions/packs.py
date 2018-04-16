@@ -1,6 +1,7 @@
 # coding: utf-8
 u"""Паки и экшены для работы со справочниками."""
 
+from __future__ import absolute_import
 from logging import getLogger
 
 from django.db import transaction
@@ -683,7 +684,7 @@ class BaseDictionaryModelActions(BaseDictionaryActions):
             record = self.model.objects.get(id=id)
         return record
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save_row(self, obj):
         obj.save()
         return OperationResult(success=True)
@@ -704,7 +705,7 @@ class BaseDictionaryModelActions(BaseDictionaryActions):
                         callable(obj.safe_delete))):
                         try:
                             obj.safe_delete()
-                        except RelatedError, e:
+                        except RelatedError as e:
                             message = e.args[0]
                     else:
                         if not safe_delete(obj):
@@ -716,7 +717,7 @@ class BaseDictionaryModelActions(BaseDictionaryActions):
         # Тут пытаемся поймать ошибку из транзакции.
         try:
             return delete_row_in_transaction(self, objs)
-        except Exception, e:
+        except Exception as e:
             # Встроенный в Django IntegrityError
             # не генерируется. Кидаются исключения
             # специфичные для каждого драйвера БД.
@@ -780,7 +781,7 @@ class BaseEnumerateDictionary(BaseDictionaryActions):
         сам id хранится в БД
         """
         assert isinstance(id, int)
-        assert id in self.enumerate_class.keys(), (
+        assert id in list(self.enumerate_class.keys()), (
             'Enumarate key "%s" is not'
             ' defined in %s' % (id, self.enumerate_class))
         return id

@@ -5,7 +5,9 @@
 @author: akvarats
 '''
 
+from __future__ import absolute_import
 import threading
+import six
 
 class CacheStat(object):
     '''
@@ -52,13 +54,12 @@ class RuntimeCacheMetaclass(type):
 
         return klass
 
-class RuntimeCache(object):
+class RuntimeCache(six.with_metaclass(RuntimeCacheMetaclass, object)):
     '''
     Класс, используемый для кеширования данных в рантайме приложения.
 
     Использование данного класса:
     '''
-    __metaclass__ = RuntimeCacheMetaclass
 
     def register_handler(self, handler):
         '''
@@ -82,7 +83,7 @@ class RuntimeCache(object):
         '''
         Проверяет, если ли в списке обработчиков кеша указанный хендлер
         '''
-        return self.handlers.has_key(self.__class__.__name__)
+        return self.__class__.__name__ in self.handlers
 
     def _normalize_dimensions(self, dimensions):
         '''
@@ -97,7 +98,7 @@ class RuntimeCache(object):
         '''
         Проверяет, нужно ли выполнять прогрузку кеша для указанных измерений
         '''
-        return not self.data.has_key(cleaned_dims)
+        return cleaned_dims not in self.data
 
     def _populate(self, dimensions):
         '''
@@ -114,10 +115,10 @@ class RuntimeCache(object):
             self.write_lock.acquire()
             if not self._need_populate(dims):
                 return False
-            for handler in self.handlers.itervalues():
+            for handler in six.itervalues(self.handlers):
                 prepared_data = handler(self, dims)
                 if isinstance(prepared_data, dict):
-                    for key,value in prepared_data.iteritems():
+                    for key,value in six.iteritems(prepared_data):
                         self.set(key, value)
         finally:
             self.write_lock.release()
@@ -147,7 +148,7 @@ class RuntimeCache(object):
         измерений
         '''
         dims = self._normalize_dimensions(dimensions)
-        return self.data.has_key(dims)
+        return dims in self.data
 
     def get_size(self):
         '''
@@ -252,7 +253,7 @@ class ObjectStorage(object):
         '''
         Проверяет, нужно ли выполнять прогрузку кеша для указанных измерений
         '''
-        return not self.data.has_key(cleaned_dims)
+        return cleaned_dims not in self.data
 
     def _populate(self, dimensions):
         '''
@@ -270,7 +271,7 @@ class ObjectStorage(object):
         for handler in self.handlers:
             prepared_data = handler(self, dims)
             if isinstance(prepared_data, dict):
-                for key,value in prepared_data.iteritems():
+                for key,value in six.iteritems(prepared_data):
                     self.set(key, value)
 
 
@@ -296,7 +297,7 @@ class ObjectStorage(object):
         измерений
         '''
         dims = self._normalize_dimensions(dimensions)
-        return self.data.has_key(dims)
+        return dims in self.data
 
     def get_size(self):
         '''
@@ -377,7 +378,7 @@ class ModelObjectStorageFactory(object):
             not hasattr(model, 'objects')):
             raise TypeError(u'Для построения объектного хранилища ожидается класс-наследник django.db.Model')
 
-        if self.storages.has_key(model):
+        if model in self.storages:
             result = self.storages[model]
         else:
             result = ModelObjectStorage(model=model)

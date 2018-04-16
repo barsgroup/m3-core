@@ -1,6 +1,7 @@
 # coding:utf-8
 """Платформа разработки приложений ERP типа на python и django."""
 
+from __future__ import absolute_import
 import copy
 import datetime
 import decimal
@@ -176,7 +177,7 @@ class M3JSONEncoder(json.JSONEncoder):
                             else:
                                 # иначе это было свойство или какой-то атрибут
                                 dict[attr] = value
-                except Exception, exc:
+                except Exception as exc:
                     # Вторая проблема с моделями в том,
                     # что dir кроме фактических полей возвращает ассессоры.
                     # При попытке обратиться к ним происходит запрос(!)
