@@ -1629,7 +1629,8 @@ class ControllerCache(object):
                 try:
                     module = importlib.import_module('.app_meta', app_name)
                 except ImportError as err:
-                    if err.args[0].find('No module named') == -1:
+                    if (err.args[0].find('No module named') == -1 or
+                            err.args[0].find('.app_meta') == -1):
                         raise
                     continue
 
