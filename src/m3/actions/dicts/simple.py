@@ -1,9 +1,6 @@
 # coding:utf-8
 from __future__ import absolute_import
 
-from m3_django_compat import atomic
-from m3_django_compat import get_installed_apps
-
 from m3 import RelatedError
 from m3.actions import ACD
 from m3.actions import Action
@@ -15,10 +12,13 @@ from m3.actions.interfaces import IMultiSelectablePack
 from m3.actions.results import ActionResult
 from m3.db import BaseObjectModel
 from m3.db import safe_delete
+from m3_django_compat import atomic
+from m3_django_compat import get_installed_apps
 from m3_ext.ui.containers import ExtPagingBar
 from m3_ext.ui.misc.store import ExtJsonStore
 from m3_ext.ui.results import ExtUIScriptResult
 from m3_ext.ui.windows.complex import ExtDictionaryWindow
+
 from m3_legacy import logger
 
 
