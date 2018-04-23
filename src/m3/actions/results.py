@@ -253,5 +253,4 @@ class ActionRedirectResult(object):
             for k, v in six.iteritems(new_post.__dict__):
                 new_post[k] = getattr(self.context, k, v)
             request.POST = new_post
-            del request._request
         return request
