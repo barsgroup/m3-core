@@ -1,3 +1,9 @@
 graft src
-include DESCRIPTION.md README.md REQUIREMENTS
+
+global-exclude *.pyc
+global-exclude __pycache__
+
+include README.md
+include DESCRIPTION.md
+include REQUIREMENTS
 include version.conf
