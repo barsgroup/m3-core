@@ -4,6 +4,7 @@
 +++++++++++++++++++++++++++++
 """
 
+from __future__ import absolute_import
 import json
 import abc
 from copy import copy
@@ -11,11 +12,11 @@ from copy import copy
 from django import http
 from django.conf import settings
 
-from context import ActionContext
+from .context import ActionContext
+import six
 
 
-class ActionResult(object):
-    __metaclass__ = abc.ABCMeta
+class ActionResult(six.with_metaclass(abc.ABCMeta, object)):
     """
     Класс описывает результат выполнения Action'а
     Данный класс является абстрактным.
@@ -249,8 +250,7 @@ class ActionRedirectResult(object):
     def prepare_request(self, request):
         if self.context:
             new_post = copy(request.POST)
-            for k, v in new_post.__dict__.iteritems():
+            for k, v in six.iteritems(new_post.__dict__):
                 new_post[k] = getattr(self.context, k, v)
             request.POST = new_post
-            del request._request
         return request

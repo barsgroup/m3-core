@@ -31,6 +31,7 @@ with TransactionCM('user_import'):
             user.save()
 """
 
+from __future__ import absolute_import
 from uuid import uuid4
 
 from django.db import transaction

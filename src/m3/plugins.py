@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from __future__ import absolute_import
 import threading
 from logging import getLogger
 from importlib import import_module
@@ -96,7 +97,7 @@ class ExtensionManager:
             for app_name in settings.INSTALLED_APPS:
                 try:
                     module = import_module('.app_meta', app_name)
-                except ImportError, err:
+                except ImportError as err:
                     if err.args[0].find('No module named') == -1:
                         raise
                     continue
@@ -117,7 +118,7 @@ class ExtensionManager:
                 extension_point.name and
                 extension_point.name.strip() and
                 isinstance(extension_point.default_listener, ExtensionListener) and
-                not self.extensions.has_key(extension_point.name))
+                extension_point.name not in self.extensions)
 
     def register_point(self, extension_point):
         '''
@@ -161,7 +162,7 @@ class ExtensionManager:
         Проверяет, существует ли во внутреннем кеше определение
         точки расширения с указанным именем
         '''
-        return self.extensions.has_key(extension_point_name)
+        return extension_point_name in self.extensions
 
     def register_handler(self, extension_name, listener):
         '''
@@ -188,10 +189,10 @@ class ExtensionManager:
         if not self.loaded:
             self._populate()
 
-        if not self.extensions.has_key(extension_name) or not self.listeners.has_key(extension_name):
+        if extension_name not in self.extensions or extension_name not in self.listeners:
             return None
 
-        if  not self.stack.has_key(extension_name) or not self.stack[extension_name]:
+        if  extension_name not in self.stack or not self.stack[extension_name]:
             # необходимо выполнить подготовку стека вызовов
             listener_stack = []
             if len(self.listeners[extension_name]) == 1 and not self.listeners[extension_name]:

@@ -1,9 +1,10 @@
 # coding: utf-8
+from __future__ import absolute_import
 import json
 import hashlib
 import logging
 import time
-import urllib2
+import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
 
 from django.conf import settings
 from django.contrib.sessions.models import Session
@@ -12,12 +13,14 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out
 
 from m3.actions import ControllerCache
 from m3_django_compat import get_user_model
+import six
+from six.moves import zip
 
 try:
     import pystatsd
 except ImportError as ie:
     raise ImportError('Metrics collection is enabled, but we failed to '
-                      'import "pystatsd": {0}'.format(unicode(ie)))
+                      'import "pystatsd": {0}'.format(six.text_type(ie)))
 
 User = get_user_model()
 
@@ -88,7 +91,7 @@ def send_controllers_contexts():
     urls = dict([(get_hash(u), u) for u in all_urls])
 
     parts = prefix.split('.')
-    identity = dict(zip(['version', 'region', 'client', 'product'], parts))
+    identity = dict(list(zip(['version', 'region', 'client', 'product'], parts)))
     instance_id = [part for part in parts if part.startswith('instance_')]
 
     if instance_id:
@@ -104,10 +107,10 @@ def send_controllers_contexts():
     }
 
     try:
-        req = urllib2.Request(endpoint_url,
+        req = six.moves.urllib.request.Request(endpoint_url,
                               data=json.dumps(packet),
                               headers={'Content-Type': 'application/json'})
-        urllib2.urlopen(req)
+        six.moves.urllib.request.urlopen(req)
         logging.info('Successfully sent context information.')
-    except urllib2.URLError as ue:
+    except six.moves.urllib.error.URLError as ue:
         logging.error("Can't send contexts to {0}: {1}".format(endpoint_url, ue))

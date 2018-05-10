@@ -1,6 +1,7 @@
 # coding: utf-8
 u"""Хелперы для отработки расширяемых конфигураций url'ов."""
 
+from __future__ import absolute_import
 import inspect
 import warnings
 import collections
@@ -40,7 +41,7 @@ def get_app_urlpatterns():
     for app_name in settings.INSTALLED_APPS:
         try:
             module = import_module('.app_meta', app_name)
-        except ImportError, err:
+        except ImportError as err:
             # по идее, такая ошибка возникает в
             # случае, если у нас для
             # установленного приложения

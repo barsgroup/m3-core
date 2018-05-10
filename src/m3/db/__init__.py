@@ -1,5 +1,6 @@
 # coding:utf-8
 
+from __future__ import absolute_import
 import datetime
 
 from django.db import models, connection, transaction, router, connections
@@ -9,6 +10,7 @@ from m3_django_compat import commit_unless_managed
 from m3_django_compat import Manager
 
 from m3 import json_encode, RelatedError
+import six
 
 
 def safe_delete(model):
@@ -26,7 +28,7 @@ def safe_delete(model):
             connection.ops.quote_name(model._meta.db_table), model.id)
         cursor.execute(sql)
         commit_unless_managed()
-    except Exception, e:
+    except Exception as e:
         # Встроенный в Django IntegrityError не генерируется.
         # Кидаются исключения, специфичные для каждого драйвера БД.
         # Но по спецификации PEP 249 все они называются IntegrityError
@@ -91,7 +93,7 @@ class BaseEnumerate(object):
         Используется для ограничения полей ORM и в качестве источника данных
         в ArrayStore и DataStore ExtJS
         """
-        return cls.values.items()
+        return list(cls.values.items())
 
     get_items = get_choices
 
@@ -101,7 +103,7 @@ class BaseEnumerate(object):
         Возвращает значение атрибута константы, которая используется в
         качестве ключа к словарю values
         """
-        if not isinstance(name, basestring):
+        if not isinstance(name, six.string_types):
             raise TypeError("'name' must be a string")
 
         if not name:
@@ -122,7 +124,7 @@ class BaseObjectModel(models.Model):
         Отображение объекта по-умолчанию. Отличается от __unicode__ тем,
         что вызывается при json сериализации в m3.core.json.M3JSONEncoder
         """
-        return unicode(self)
+        return six.text_type(self)
 
     def __unicode__(self):
         """ Определяет текстовое представление объекта """
@@ -165,7 +167,7 @@ class BaseObjectModel(models.Model):
         using = using or router.db_for_write(self.__class__, instance=self)
         collector = Collector(using=using)
         collector.collect([self])
-        return collector.data.items()
+        return list(collector.data.items())
 
     def delete_related(self, affected=None, using=None):
         """
