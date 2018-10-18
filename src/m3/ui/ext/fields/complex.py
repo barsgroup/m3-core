@@ -55,6 +55,9 @@ class ExtDictSelectField(BaseExtTriggerField):
         self.default_text = None
 
         self.ask_before_deleting = True
+        self.ask_before_deleting_title = u'Подтверждение'
+        self.ask_before_deleting_text = (
+            u'Вы действительно хотите очистить выбранное значение?')
 
         self.url = None
         self.edit_url = None
@@ -315,6 +318,10 @@ class ExtDictSelectField(BaseExtTriggerField):
             action_context = self.action_context.json
 
         self._put_params_value('askBeforeDeleting', self.ask_before_deleting)
+        self._put_params_value('askBeforeDeletingTitle',
+                               self.ask_before_deleting_title)
+        self._put_params_value('askBeforeDeletingText',
+                               self.ask_before_deleting_text)
         self._put_params_value('actions', {'actionSelectUrl': self.url,
                                            'actionEditUrl':self.edit_url,
                                            'contextJson':  action_context})
