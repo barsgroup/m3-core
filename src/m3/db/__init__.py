@@ -3,11 +3,9 @@ from __future__ import absolute_import
 
 import datetime
 
-from django.db import connection
 from django.db import connections
 from django.db import models
 from django.db import router
-from django.db import transaction
 from django.db.models.deletion import Collector
 from django.db.models.query import QuerySet
 from m3 import RelatedError
@@ -20,18 +18,21 @@ import six
 def safe_delete(model):
     """
     Функция выполняющая "безопасное" удаление записи из БД.
+
     В случае, если удаление не удалось по причине нарушения целостности,
     то возвращается false. Иначе, true
     к тому же функция пересчитывает MPTT индексы дерева
     т.к. стандартный пересчет запускается при вызове model_instance.delete()
     """
     models.signals.pre_delete.send(sender=model.__class__, instance=model)
+    db_alias = router.db_for_write(model.__class__, instance=model)
     try:
+        connection = connections[db_alias]
         cursor = connection.cursor()
         sql = "DELETE FROM %s WHERE id = %s" % (
             connection.ops.quote_name(model._meta.db_table), model.id)
         cursor.execute(sql)
-        commit_unless_managed()
+        commit_unless_managed(using=db_alias)
     except Exception as e:
         # Встроенный в Django IntegrityError не генерируется.
         # Кидаются исключения, специфичные для каждого драйвера БД.
