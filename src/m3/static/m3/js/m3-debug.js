@@ -7027,6 +7027,8 @@ Ext.m3.AdvancedComboBox = Ext.extend(Ext.m3.ComboBox, {
 		}
 		
 		this.askBeforeDeleting = params.askBeforeDeleting;
+		this.askBeforeDeletingTitle = params.askBeforeDeletingTitle;
+		this.askBeforeDeletingText = params.askBeforeDeletingText;
 		this.actionContextJson = params.actions.contextJson;
 		
 		this.hideBaseTrigger = false;
@@ -7290,8 +7292,8 @@ Ext.m3.AdvancedComboBox = Ext.extend(Ext.m3.ComboBox, {
 		if (this.askBeforeDeleting) {
 			var scope = this;
 			Ext.Msg.show({
-	            title: 'Подтверждение',
-	            msg: 'Вы действительно хотите очистить выбранное значение?',
+	            title: this.askBeforeDeletingTitle,
+	            msg: this.askBeforeDeletingText,
 	            icon: Ext.Msg.QUESTION,
 	            buttons: Ext.Msg.YESNO,
 	            fn: function(btn,text,opt){
