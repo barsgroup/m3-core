@@ -435,3 +435,20 @@ def apply_column_filter(query, request, map):
     if cond:
         query = query.filter(cond)
     return query
+
+
+def replace_action(pack, action_attr_name, new_action):
+    """Замена указанного экшена в паке.
+
+    :param pack: Пак, в котором нужно произвести замену.
+    :type pack: m3.actions.ActionPack
+
+    :param str action_attr_name: Имя поля пака, в котором хранится ссылка на
+        экшн, подлежащий замене.
+
+    :param new_action: Новый экшн.
+    :type new_action: m3.actions.Action
+    """
+    pack.actions.remove(getattr(pack, action_attr_name))
+    setattr(pack, action_attr_name, new_action)
+    pack.actions.append(new_action)
