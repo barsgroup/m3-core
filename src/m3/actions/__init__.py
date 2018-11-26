@@ -1007,10 +1007,10 @@ class ActionController(object):
         self.process_context(request, context, action)
 
         try:
-        	response, force = self._process_action(
-        		self, request, context, stack, suffix):
-        	if force:
-        		return response
+            response, force = self._process_action(
+                self, request, context, stack, suffix):
+            if force:
+                return response
         except ApplicationLogicException as exc:
             return OperationResult(
                 success=False, message=exc.exception_message)
@@ -1018,13 +1018,13 @@ class ActionController(object):
         # по возможности запихиваем текущий контекст в response
         if isinstance(response, BaseContextedResult):
             response.set_context(context)
-            
+
         return response
 
     def _process_action(self, request, context, stack, suffix=None):
-    	"""
-    	Вызов экшена вместе со всеми pre_run и post_run
-    	"""
+        """
+        Вызов экшена вместе со всеми pre_run и post_run
+        """
         # Все ПРЕ обработчики
         for pack in stack:
             result = pack.pre_run(request, context)
