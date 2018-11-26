@@ -1007,27 +1007,10 @@ class ActionController(object):
         self.process_context(request, context, action)
 
         try:
-            # Все ПРЕ обработчики
-            for pack in stack:
-                result = pack.pre_run(request, context)
-                if result is not None:
-                    return result
-            # Сам экшен
-            result = action.pre_run(request, context)
-            if result is not None:
-                return result
-            if suffix is None:
-                response = action.run(request, context)
-            else:
-                response = action.run(request, context, suffix)
-            result = action.post_run(request, context, response)
-            if result is not None:
-                return result
-            # Все ПОСТ обработчики с конца
-            for pack in reversed(stack):
-                result = pack.post_run(request, context, response)
-                if result is not None:
-                    return result
+        	response, force = self._process_action(
+        		self, request, context, stack, suffix):
+        	if force:
+        		return response
         except ApplicationLogicException as exc:
             return OperationResult(
                 success=False, message=exc.exception_message)
@@ -1035,7 +1018,36 @@ class ActionController(object):
         # по возможности запихиваем текущий контекст в response
         if isinstance(response, BaseContextedResult):
             response.set_context(context)
+            
         return response
+
+    def _process_action(self, request, context, stack, suffix=None):
+    	"""
+    	Вызов экшена вместе со всеми pre_run и post_run
+    	"""
+        # Все ПРЕ обработчики
+        for pack in stack:
+            result = pack.pre_run(request, context)
+            if result is not None:
+                return result, True
+        # Сам экшен
+        result = action.pre_run(request, context)
+        if result is not None:
+            return result, True
+        if suffix is None:
+            response = action.run(request, context)
+        else:
+            response = action.run(request, context, suffix)
+        result = action.post_run(request, context, response)
+        if result is not None:
+            return result, True
+        # Все ПОСТ обработчики с конца
+        for pack in reversed(stack):
+            result = pack.post_run(request, context, response)
+            if result is not None:
+                return result, True
+
+        return response, False
 
     def process_request(self, request):
         """
