@@ -1008,7 +1008,7 @@ class ActionController(object):
 
         try:
             response, force = self._process_action(
-                self, request, context, stack, suffix):
+                action, request, context, stack, suffix)
             if force:
                 return response
         except ApplicationLogicException as exc:
@@ -1021,7 +1021,7 @@ class ActionController(object):
 
         return response
 
-    def _process_action(self, request, context, stack, suffix=None):
+    def _process_action(self, action, request, context, stack, suffix=None):
         """
         Вызов экшена вместе со всеми pre_run и post_run
         """
