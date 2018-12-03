@@ -1008,7 +1008,7 @@ class ActionController(object):
 
         try:
             response, force = self._process_action(
-                action, request, context, stack, suffix)
+                action, request, context, stack, suffix=suffix)
             if force:
                 return response
         except ApplicationLogicException as exc:
