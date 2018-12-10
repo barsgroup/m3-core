@@ -328,7 +328,7 @@ class TreeEditNodeWindowAction(Action):
             return OperationResult.by_message(MSG_DOESNOTEXISTS % context.id)
 
         if not win.title:
-            win.title = base.title
+            win.title = u'{}: Редактирование'.format(base.title)
         win.form.url = base.save_node_action.get_absolute_url()
 
         # проверим право редактирования
@@ -367,7 +367,7 @@ class TreeNewNodeWindowAction(Action):
         win.form.from_object(obj)
         # Донастраиваем форму
         if not win.title:
-            win.title = base.title
+            win.title = u'{}: Добавление'.format(base.title)
         win.form.url = base.save_node_action.get_absolute_url()
 
         # У окна может быть процедура доп. конфигурации под конкретный
