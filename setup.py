@@ -43,6 +43,8 @@ setup(
         'Framework :: Django :: 1.10',
         'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
+        'Framework :: Django :: 2.1',
+        'Framework :: Django :: 2.2',
     ),
     dependency_links=(
         'http://pypi.bars-open.ru/simple/m3-builder',
@@ -53,8 +55,8 @@ setup(
     install_requires=(
         'six>=1.11,<2',
         'm3-builder>=1.2.0,<2',
-        'm3-django-compat>=1.7.0,<2',
-        'django>=1.4,<2.1',
+        'm3-django-compat>=1.9.0,<2',
+        'django>=1.4,<2.2',
     ),
     set_build_info=dirname(__file__),
 )
