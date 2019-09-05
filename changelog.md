@@ -1,5 +1,9 @@
 ## История изменений
 
+**2.2.22**
+- Промежуточный слой ``PrettyTracebackMiddleware`` учитывает переход от
+  ``MIDDLEWARE_CLASSES`` к ``MIDDLEWARE``.
+
 **2.2.21**
 - ``TreeNewNodeWindowAction`` в качестве значения по-умолчанию для title добавлено слово "Добавление"
 - ``TreeEditNodeWindowAction`` в качестве значения по-умолчанию для title добавлено слово "Редактирование"
