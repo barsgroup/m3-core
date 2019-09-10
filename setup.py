@@ -53,7 +53,7 @@ setup(
     install_requires=(
         'six>=1.11,<2',
         'm3-builder>=1.2.0,<2',
-        'm3-django-compat>=1.7.0,<2',
+        'm3-django-compat>=1.9.2,<2',
         'django>=1.4,<2.1',
     ),
     set_build_info=dirname(__file__),

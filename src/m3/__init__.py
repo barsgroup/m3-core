@@ -20,6 +20,7 @@ from django.utils import datetime_safe
 from django.views.debug import ExceptionReporter
 from m3_django_compat import ModelOptions
 from m3_django_compat import is_authenticated
+from m3_django_compat.middleware import MiddlewareMixin
 
 from .actions import ApplicationLogicException
 from .actions import OperationResult
@@ -342,7 +343,7 @@ def authenticated_user_required(f):
     return action
 
 
-class PrettyTracebackMiddleware(object):
+class PrettyTracebackMiddleware(MiddlewareMixin):
     """
     Middleware, выводящая traceback'и в html-виде
     """
