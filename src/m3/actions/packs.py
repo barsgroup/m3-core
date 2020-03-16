@@ -4,7 +4,6 @@ u"""Паки и экшены для работы со справочниками
 from __future__ import absolute_import
 from logging import getLogger
 
-from django.db import transaction
 from django.conf import settings
 
 from m3.actions import utils
@@ -13,7 +12,7 @@ from m3.actions.interfaces import ISelectablePack
 from m3.actions import ActionPack, Action, PreJsonResult, OperationResult, ACD
 from m3 import RelatedError
 from m3.db import BaseObjectModel, safe_delete
-from m3_django_compat import get_request_params
+from m3_django_compat import get_request_params, atomic
 
 logger = getLogger('django')
 
@@ -684,7 +683,7 @@ class BaseDictionaryModelActions(BaseDictionaryActions):
             record = self.model.objects.get(id=id)
         return record
 
-    @transaction.atomic
+    @atomic
     def save_row(self, obj):
         obj.save()
         return OperationResult(success=True)
@@ -693,7 +692,7 @@ class BaseDictionaryModelActions(BaseDictionaryActions):
         # Такая реализация обусловлена тем,
         # что IntegrityError невозможно отловить
         # до завершения транзакции, и приходится оборачивать транзакцию.
-        @transaction.commit_on_success
+        @atomic
         def delete_row_in_transaction(self, objs):
             message = ''
             if len(objs) == 0:

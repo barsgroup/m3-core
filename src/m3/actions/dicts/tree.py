@@ -6,11 +6,10 @@ Created on 29.01.2011
 """
 
 from __future__ import absolute_import
-from django.db import transaction
 from django.dispatch import Signal
 
 from m3 import RelatedError
-from m3_django_compat import get_request_params
+from m3_django_compat import get_request_params, atomic
 from m3.actions import (
     ActionPack, Action, PreJsonResult, OperationResult, ACD, utils)
 from m3.actions.packs import ListDeleteRowAction
@@ -947,7 +946,7 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
         # Такая реализация обусловлена тем,
         # что IntegrityError невозможно отловить
         # до завершения транзакции, и приходится оборачивать транзакцию.
-        @transaction.commit_on_success
+        @atomic
         def delete_row_in_transaction(self, objs):
             message = ''
             if len(objs) == 0:

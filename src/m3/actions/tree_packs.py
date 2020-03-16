@@ -2,7 +2,6 @@
 u"""Паки для иерархических справочников."""
 
 from __future__ import absolute_import
-from django.db import transaction
 from django.dispatch import Signal
 
 from m3_ext.ui.results import ExtUIScriptResult
@@ -17,7 +16,7 @@ from m3.db import BaseObjectModel, safe_delete
 from m3 import RelatedError
 from m3.actions.results import ActionResult
 from m3.actions.interfaces import ISelectablePack
-from m3_django_compat import get_request_params
+from m3_django_compat import get_request_params, atomic
 
 
 class TreeGetNodesAction(Action):
@@ -945,7 +944,7 @@ class BaseTreeDictionaryModelActions(BaseTreeDictionaryActions):
         # Такая реализация обусловлена тем,
         # что IntegrityError невозможно отловить
         # до завершения транзакции, и приходится оборачивать транзакцию.
-        @transaction.commit_on_success
+        @atomic
         def delete_row_in_transaction(self, objs):
             message = ''
             if len(objs) == 0:
