@@ -21,11 +21,13 @@ setup(
     package_dir={'': 'src'},
     packages=find_packages('src'),
     description=_read('DESCRIPTION.md'),
+    description_content_type='text/markdown',
     install_requires=(
         'm3-builder>=1.2.0',
         'm3-django-compat>=1.5.1',
     ),
     long_description=_read('README.md'),
+    long_description_content_type='text/markdown',
     include_package_data=True,
     classifiers=[
         'Intended Audience :: Developers',
