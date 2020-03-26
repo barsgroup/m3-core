@@ -14,12 +14,14 @@ from django.db import models as dj_models
 from django.http import HttpResponseRedirect, HttpResponseServerError
 from django.utils import datetime_safe
 from django.views.debug import ExceptionReporter
-from m3_django_compat import ModelOptions
+from m3_django_compat import (
+    ModelOptions,
+    is_authenticated,
+)
 
 from .actions import ApplicationLogicException
 from .actions.urls import get_app_urlpatterns
 from .actions import OperationResult
-from m3_django_compat import is_authenticated
 
 
 def date2str(date, template=None):
