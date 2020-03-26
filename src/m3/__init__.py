@@ -51,7 +51,7 @@ class AutoLogout(object):
 
         # У аутентифицированного пользователя проверяем таймаут,
         # а ананимусов сразу посылаем
-        if is_authenticated(request.user)():
+        if is_authenticated(request.user):
             last_time = request.session.get(self.session_key, None)
             if last_time is not None:
                 delta = datetime.datetime.now() - last_time
