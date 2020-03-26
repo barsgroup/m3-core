@@ -19,6 +19,7 @@ from m3_django_compat import ModelOptions
 from .actions import ApplicationLogicException
 from .actions.urls import get_app_urlpatterns
 from .actions import OperationResult
+from m3_django_compat import is_authenticated
 
 
 def date2str(date, template=None):
@@ -50,7 +51,7 @@ class AutoLogout(object):
 
         # У аутентифицированного пользователя проверяем таймаут,
         # а ананимусов сразу посылаем
-        if request.user.is_authenticated():
+        if is_authenticated(request.user)():
             last_time = request.session.get(self.session_key, None)
             if last_time is not None:
                 delta = datetime.datetime.now() - last_time
@@ -251,7 +252,7 @@ def authenticated_user_required(f):
 
     def action(request, *args, **kwargs):
         user = request.user
-        if not user or not user.is_authenticated():
+        if not user or not is_authenticated(user):
             if request.is_ajax():
                 res = OperationResult.by_message(
                     u'Вы не авторизованы. Возможно, закончилось время '
