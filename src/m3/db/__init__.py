@@ -247,10 +247,10 @@ class BaseObjectModelWVersion(BaseObjectModel):
     version = models.IntegerField(u'Версия записи', default=0)
 
     def do_lock(self):
-        if self.id:
+        if self.pk:
             # блокируем запись с нашей версией от изменения
             q = self.__class__.objects.filter(
-                id=self.id, version=self.version
+                pk=self.pk, version=self.version
             ).for_update()
             # если удачно блокировали,
             # то можем делать с ней что угодно в рамках транзакции
@@ -268,7 +268,7 @@ class BaseObjectModelWVersion(BaseObjectModel):
         Это нужно чтобы проверять, была ли модифицирована запись
         после последнего получения
         """
-        if self.id:
+        if self.pk:
             self.version += 1
         super(BaseObjectModelWVersion, self).save(*a, **k)
 
