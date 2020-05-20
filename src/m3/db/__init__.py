@@ -6,6 +6,7 @@ import datetime
 from django.db import models, connection, transaction, router, connections
 from django.db.models.query import QuerySet
 from django.db.models.deletion import Collector
+from django.utils.encoding import python_2_unicode_compatible
 from m3_django_compat import commit_unless_managed
 from m3_django_compat import Manager
 
@@ -112,6 +113,7 @@ class BaseEnumerate(object):
         return cls.__dict__[name]
 
 
+@python_2_unicode_compatible
 class BaseObjectModel(models.Model):
     """
     Базовая модель для объектов системы.
@@ -121,12 +123,12 @@ class BaseObjectModel(models.Model):
     @json_encode
     def display(self):
         """
-        Отображение объекта по-умолчанию. Отличается от __unicode__ тем,
+        Отображение объекта по-умолчанию. Отличается от __str__ тем,
         что вызывается при json сериализации в m3.core.json.M3JSONEncoder
         """
         return six.text_type(self)
 
-    def __unicode__(self):
+    def __str__(self):
         """ Определяет текстовое представление объекта """
         name = getattr(self, 'name', None) or getattr(self, 'fullname', None)
         if name:
