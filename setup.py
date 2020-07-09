@@ -34,6 +34,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Framework :: Django :: 1.4',
         'Framework :: Django :: 1.5',
         'Framework :: Django :: 1.6',
@@ -43,6 +44,8 @@ setup(
         'Framework :: Django :: 1.10',
         'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
+        'Framework :: Django :: 2.1',
+        'Framework :: Django :: 2.2',
     ),
     dependency_links=(
         'http://pypi.bars-open.ru/simple/m3-builder',
@@ -54,7 +57,7 @@ setup(
         'six>=1.11,<2',
         'm3-builder>=1.2.0,<2',
         'm3-django-compat>=1.9.2,<2',
-        'django>=1.4,<2.1',
+        'django>=1.4,<3',
     ),
     set_build_info=dirname(__file__),
 )

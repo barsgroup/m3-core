@@ -1,5 +1,8 @@
 ## История изменений
 
+**2.2.23**
+- Добавлена поддержка django 2.2.
+
 **2.2.22**
 - Промежуточный слой ``PrettyTracebackMiddleware`` учитывает переход от
   ``MIDDLEWARE_CLASSES`` к ``MIDDLEWARE``.
