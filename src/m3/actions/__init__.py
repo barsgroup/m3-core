@@ -1471,7 +1471,7 @@ class ControllerCache(object):
         """
         if inspect.isclass(pack):
             name = pack.get_short_name()
-        elif isinstance(pack, str) and '.' in pack:
+        elif isinstance(pack, string_types) and '.' in pack:
             name = pack
         else:
             raise ValueError(
