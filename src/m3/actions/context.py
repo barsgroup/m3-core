@@ -1,15 +1,32 @@
 # coding: utf-8
-u""""Модуль, реализущий работу с контекстом выполнения операции."""
+""""
+Модуль, реализущий работу с контекстом выполнения операции
+"""
 
-from __future__ import absolute_import
-import json
+import ast
 import datetime
-from decimal import Decimal
-from logging import getLogger
-
-from django.utils.encoding import force_str
-from m3_django_compat import get_request_params
+import json
 import six
+
+from abc import (
+    ABCMeta,
+    abstractmethod,
+)
+from decimal import (
+    Decimal,
+)
+from logging import (
+    getLogger,
+)
+
+from django.utils.encoding import (
+    force_str,
+)
+
+from m3_django_compat import (
+    get_model,
+    get_request_params,
+)
 
 
 logger = getLogger('django')
@@ -17,7 +34,9 @@ logger = getLogger('django')
 
 def _date2str(*args):
     # lazy import
-    from m3 import date2str
+    from m3 import (
+        date2str,
+    )
     return date2str(*args)
 
 #============================= ИСКЛЮЧЕНИЯ =====================================
@@ -247,10 +266,93 @@ class ActionContextDeclaration(object):
         return self.verbose_name if self.verbose_name else self.name
 
 
+class AbstractModelPKType(metaclass=ABCMeta):
+    """
+    Абстрактный класс для создания парсеров первичных ключей и приведения к
+    типу, указанному в моделе
+    """
+
+    def __init__(
+        self,
+        app_label,
+        model_name,
+    ):
+        self._app_label = app_label
+        self._model_name = model_name
+        self._model = get_model(
+            app_label=self._app_label,
+            model_name=self._model_name,
+        )
+
+    def __call__(
+        self,
+        raw_value,
+    ):
+        return self._parse(
+            raw_value=raw_value,
+        )
+
+    @property
+    def app_label(self):
+        return self._app_label
+
+    @property
+    def model_name(self):
+        return self._model_name
+
+    @property
+    def model(self):
+        return self._model
+
+    @abstractmethod
+    def _parse(
+        self,
+        raw_value,
+    ):
+        """
+        Парсинг передаваемой сырой строки и преобразование к типу первичного
+        ключа модели
+        """
+
+
+class ModelSinglePKType(AbstractModelPKType):
+    """
+    Парсер первичного ключа с приведением к типу, указанному в моделе
+    """
+
+    def _parse(
+        self,
+        raw_value,
+    ):
+        """
+        Пасинг сырой строки для выделения первичного ключа и приведения его к
+        указанному в моделе типу
+        """
+        return self._model._meta.pk.to_python(raw_value)
+
+
+class ModelMultiplePKType(AbstractModelPKType):
+    """
+    Парсер списка первичных ключей с приведением к типу, указанному в моделе
+    """
+
+    def _parse(
+        self,
+        raw_value,
+    ):
+        """
+        Парсер сырой строки для выделения списка первичных ключей с приведением
+        их к указанном в моделе типу
+        """
+        pks = ast.literal_eval(raw_value)
+
+        return list(map(self._model._meta.pk.to_python, pks))
+
+
 class ActionContext(object):
-    u'''
+    """
     Контекст выполнения операции, восстанавливаемый из запроса.
-    '''
+    """
     #: Для совместимости
     RequiredFailed = RequiredFailed
 
@@ -274,10 +376,10 @@ class ActionContext(object):
             setattr(self, k, v)
 
     def convert_value(self, raw_value, arg_type):
-        u'''
+        """
         Возвращает значение *raw_value*,
         преобразованное в заданный тип *arg_type*
-        '''
+        """
         try:
             if isinstance(arg_type, ActionContext.ValuesList):
                 elements = raw_value.split(arg_type.separator)
@@ -287,6 +389,8 @@ class ActionContext(object):
                     self.convert_value(e, arg_type.type)
                     for e in elements
                 ]
+            elif isinstance(arg_type, AbstractModelPKType):
+                value = arg_type(raw_value)
             else:
                 if not arg_type in _PARSERS:
                     raise TypeError('Unknown parser "%r"!' % arg_type)
