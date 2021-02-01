@@ -3,6 +3,10 @@
 Модуль, реализущий работу с контекстом выполнения операции
 """
 
+from __future__ import (
+    absolute_import,
+)
+
 import ast
 import datetime
 import json
