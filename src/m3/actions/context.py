@@ -270,7 +270,7 @@ class ActionContextDeclaration(object):
         return self.verbose_name if self.verbose_name else self.name
 
 
-class AbstractModelPKType(metaclass=ABCMeta):
+class AbstractModelPKType(object, metaclass=ABCMeta):
     """
     Абстрактный класс для создания парсеров первичных ключей и приведения к
     типу, указанному в моделе

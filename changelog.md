@@ -1,7 +1,8 @@
 ## История изменений
 **3.1.8**
 - Исправлена ошибка метода m3.actions.ActionController.get_action_by_url возникшая после добавления суффикса экшена;
-- Добавлены парсеры типов m3.actions.context.ModelSinglePKType и m3.actions.context.ModelMultiplePKType для указания удентификаторов моделей.
+- Добавлены парсеры типов m3.actions.context.ModelSinglePKType и m3.actions.context.ModelMultiplePKType для указания удентификаторов моделей;
+- Восстановление совместимости.
 
 **3.1.7**
 - Добавлены изменения для совместимости с Python 3:
