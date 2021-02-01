@@ -843,8 +843,8 @@ class ActionController(object):
 
         # Словарь для быстрого разрешения запросов.
         # Состоит из полного пути запроса, списка
-        # вызываемых паков и экшена.
-        # Пример: {'/dict/lpu/get_rows': ([DictPack, LPUPack], RowsAction)}
+        # вызываемых паков, экшена, суффикса экшена.
+        # Пример: {'/dict/lpu/get_rows': ([DictPack, LPUPack], RowsAction, None)}
         self._url_patterns = {}
 
         # Словари для быстрого поиска паков по имени и классу, например:
@@ -1394,7 +1394,7 @@ class ActionController(object):
 
         matched = self._url_patterns.get(url)
         if matched:
-            _, action = matched
+            _, action, _ = matched
             return action
 
     def get_top_actions(self):
