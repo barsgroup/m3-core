@@ -44,6 +44,7 @@ from .context import (
     RequiredFailed,
     ContextBuildingError,
     CriticalContextBuildingError,
+    convert_dac_to_acd,
 )
 from .metrics import create_statsd_client
 from . import utils
@@ -550,6 +551,25 @@ class Action(object):
             m3_core.actions.context.DeclarativeActionContext
         """
         pass
+
+    def get_acd_with_ccd(self):
+        """
+        Возвращает набор правил ACD или декларативное описание
+        вместе с контекстом контроллера
+        :return: [ACD] или DAC
+        """
+        acd = self.context_declaration()
+        ccd = self.controller.get_ccd()
+        if acd and ccd:
+            if DeclarativeActionContext.matches(acd):
+                acd = convert_dac_to_acd(acd)
+
+            if DeclarativeActionContext.matches(ccd):
+                ccd = convert_dac_to_acd(ccd)
+
+            acd.extend(ccd)
+
+        return acd or ccd
 
     def run(self, request, context):
         """
@@ -1446,6 +1466,12 @@ class ActionController(object):
         if url.endswith('/'):
             url = url[:-2]
         return (r'^%s/' % url, self.process_request)
+
+    def get_ccd(self):
+        """
+        Контекст контроллера
+        """
+        pass
 
 
 class ControllerCache(object):
