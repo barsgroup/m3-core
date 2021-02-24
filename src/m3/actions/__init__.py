@@ -567,6 +567,9 @@ class Action(object):
             if DeclarativeActionContext.matches(ccd):
                 ccd = convert_dac_to_acd(ccd)
 
+            if isinstance(acd, tuple):
+                acd = list(acd)
+
             acd.extend(ccd)
 
         return acd or ccd
