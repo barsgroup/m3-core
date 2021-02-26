@@ -10,6 +10,8 @@ from __future__ import (
 import ast
 import datetime
 import json
+import re
+
 import six
 
 from abc import (
@@ -332,7 +334,23 @@ class ModelSinglePKType(AbstractModelPKType):
         Пасинг сырой строки для выделения первичного ключа и приведения его к
         указанному в моделе типу
         """
+        raw_value = self._parse_obj_id(raw_value)
+
         return self._model._meta.pk.to_python(raw_value)
+
+    def _parse_obj_id(self, raw_value):
+        """
+        Преобразовывает raw_value если в конекст значение ид модели пришло
+        в виде '{1}'.
+
+        TODO: BOBUH-17847
+              Метод нужно удалить в рамках задачи по исправлению рендера контекста
+        """
+        found_id = re.findall(r'^{(\d+)}$', raw_value)
+        if found_id:
+            raw_value = found_id[0]
+
+        return raw_value
 
 
 class ModelMultiplePKType(AbstractModelPKType):
@@ -678,3 +696,15 @@ class DeclarativeActionContext(ActionContext):
             len(data) == 2 and
             isinstance(data[0], six.string_types)
         )
+
+
+def convert_dac_to_acd(dac):
+    """
+    Преобразовывает декларативное описание контекста в набор ACD
+    :param dac: словарь описания DeclarativeActionContext
+    :return: Набор правил ACD
+    """
+    return [
+        ActionContextDeclaration(name=name, **rules)
+        for name, rules in dac.items()
+    ]
