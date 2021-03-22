@@ -285,15 +285,17 @@ class AbstractModelPKType(object, metaclass=ABCMeta):
     ):
         self._app_label = app_label
         self._model_name = model_name
-        self._model = get_model(
-            app_label=self._app_label,
-            model_name=self._model_name,
-        )
+        self._model = None
+
 
     def __call__(
         self,
         raw_value,
     ):
+        self._model = get_model(
+            app_label=self._app_label,
+            model_name=self._model_name,
+        )
         return self._parse(
             raw_value=raw_value,
         )
