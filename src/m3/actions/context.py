@@ -292,10 +292,6 @@ class AbstractModelPKType(object, metaclass=ABCMeta):
         self,
         raw_value,
     ):
-        self._model = get_model(
-            app_label=self._app_label,
-            model_name=self._model_name,
-        )
         return self._parse(
             raw_value=raw_value,
         )
@@ -310,6 +306,12 @@ class AbstractModelPKType(object, metaclass=ABCMeta):
 
     @property
     def model(self):
+        if not self._model:
+            self._model = get_model(
+                app_label=self._app_label,
+                model_name=self._model_name,
+            )
+
         return self._model
 
     @abstractmethod
@@ -338,7 +340,7 @@ class ModelSinglePKType(AbstractModelPKType):
         """
         raw_value = self._parse_obj_id(raw_value)
 
-        return self._model._meta.pk.to_python(raw_value)
+        return self.model._meta.pk.to_python(raw_value)
 
     def _parse_obj_id(self, raw_value):
         """
@@ -370,7 +372,7 @@ class ModelMultiplePKType(AbstractModelPKType):
         """
         pks = ast.literal_eval(raw_value)
 
-        return list(map(self._model._meta.pk.to_python, pks))
+        return list(map(self.model._meta.pk.to_python, pks))
 
 
 class ActionContext(object):
