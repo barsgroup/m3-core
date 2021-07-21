@@ -338,7 +338,10 @@ class ModelSinglePKType(AbstractModelPKType):
         Пасинг сырой строки для выделения первичного ключа и приведения его к
         указанному в моделе типу
         """
-        raw_value = self._parse_obj_id(raw_value)
+        # TODO: BOBUH-17847 В _parse_obj_id производится разбор строки, но если использовать редирект, могут прийти уже преобразованные
+        #   данные к нужным типам не являющимися строками
+        if isinstance(raw_value, str):
+            raw_value = self._parse_obj_id(raw_value)
 
         return self.model._meta.pk.to_python(raw_value)
 
