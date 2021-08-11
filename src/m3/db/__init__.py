@@ -1,17 +1,26 @@
-# coding:utf-8
-
-from __future__ import absolute_import
 import datetime
-
-from django.db import models, connection, transaction, router, connections
-from django.db.models.query import QuerySet
-from django.db.models.deletion import Collector
-from django.utils.encoding import python_2_unicode_compatible
-from m3_django_compat import commit_unless_managed
-from m3_django_compat import Manager
-
-from m3 import json_encode, RelatedError
 import six
+from django.db import (
+    connection,
+    connections,
+    models,
+    router,
+)
+from django.db.models.deletion import (
+    Collector,
+)
+from django.db.models.query import (
+    QuerySet,
+)
+
+from m3 import (
+    RelatedError,
+    json_encode,
+)
+from m3_django_compat import (
+    Manager,
+    commit_unless_managed,
+)
 
 
 def safe_delete(model):
@@ -85,7 +94,7 @@ class BaseEnumerate(object):
     """
     # В словаре values описываются перечисляемые константы
     # и их человеческое название
-    # Например: {STATE1: u'Состояние 1', CLOSED: u'Закрыто'}
+    # Например: {STATE1: 'Состояние 1', CLOSED: 'Закрыто'}
     values = {}
 
     @classmethod
@@ -113,7 +122,6 @@ class BaseEnumerate(object):
         return cls.__dict__[name]
 
 
-@python_2_unicode_compatible
 class BaseObjectModel(models.Model):
     """
     Базовая модель для объектов системы.
@@ -134,9 +142,9 @@ class BaseObjectModel(models.Model):
         if name:
             if callable(name):
                 name = name()
-            return u'{%s: %s}' % (self.pk, name)
+            return '{%s: %s}' % (self.pk, name)
         else:
-            return u'{%s}' % self.pk
+            return '{%s}' % self.pk
 
     @classmethod
     def get_verbose_name(cls):
@@ -150,7 +158,7 @@ class BaseObjectModel(models.Model):
         """
         if not safe_delete(self):
             raise RelatedError(
-                u"Объект не может быть удален! Возможно на него есть ссылки.")
+                'Объект не может быть удален! Возможно на него есть ссылки.')
         else:
             return True
 
@@ -246,7 +254,7 @@ class BaseObjectModelWVersion(BaseObjectModel):
 
     objects = ForUpdateManager()
 
-    version = models.IntegerField(u'Версия записи', default=0)
+    version = models.IntegerField('Версия записи', default=0)
 
     def do_lock(self):
         if self.pk:
@@ -292,7 +300,7 @@ class ObjectState(BaseEnumerate):
     VALID = 0
     CLOSED = 1
     DRAFT = 2
-    values = {VALID: u'Действует', CLOSED: u'Закрыта', DRAFT: u'Черновик'}
+    values = {VALID: 'Действует', CLOSED: 'Закрыта', DRAFT: 'Черновик'}
 
 
 class ObjectManager(Manager):
@@ -338,19 +346,19 @@ class BaseObjectModelWState(BaseObjectModel):
     """
 
     state = models.SmallIntegerField(
-        u'Состояние',
+        'Состояние',
         choices=ObjectState.get_choices(),
         default=ObjectState.DRAFT
     )
     begin = models.DateTimeField(
-        u'Начало действия',
+        'Начало действия',
         null=True,
         blank=True,
         db_index=True,
         default=datetime.date.min
     )
     end = models.DateTimeField(
-        u'Окончание действия',
+        'Окончание действия',
         null=True,
         blank=True,
         db_index=True,
