@@ -359,6 +359,14 @@ class ModelSinglePKType(AbstractModelPKType):
 
         return raw_value
 
+    def __str__(self):
+        if self.app_label and self.model_name:
+            str_ = f'id for {self.app_label}.{self.model_name}'
+        else:
+            str_ = 'id for unknown model'
+
+        return str_
+
 
 class ModelMultiplePKType(AbstractModelPKType):
     """
@@ -376,6 +384,14 @@ class ModelMultiplePKType(AbstractModelPKType):
         pks = ast.literal_eval(raw_value)
 
         return list(map(self.model._meta.pk.to_python, pks))
+
+    def __str__(self):
+        if self.app_label and self.model_name:
+            str_ = f'ids for {self.app_label}.{self.model_name}'
+        else:
+            str_ = 'ids for unknown model'
+
+        return str_
 
 
 class ActionContext(object):
